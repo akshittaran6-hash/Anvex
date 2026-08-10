@@ -1,5 +1,7 @@
 package com.anvex.server;
 
+import com.anvex.defense.DefenseEngine;
+import com.anvex.defense.DefenseStrategy;
 import com.anvex.event.EventBus;
 import com.anvex.event.SecurityEvent;
 import com.anvex.event.SecurityEventType;
@@ -20,31 +22,41 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class AuthenticationServer {
 
-    private static final Logger logger =
-            LoggerFactory.getLogger(AuthenticationServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationServer.class);
 
     private final DatabaseManager dbManager;
     private final EventBus eventBus;
     private final UserRepository userRepository;
     private final ExecutorService handlerPool;
+    private final DefenseEngine defenseEngine;
 
-    private final AtomicLong currentRunId =
-            new AtomicLong(0);
+    private final AtomicLong currentRunId = new AtomicLong(0);
 
     private volatile boolean running;
     private ServerSocket serverSocket;
     private Thread acceptThread;
 
-    public AuthenticationServer(
-            DatabaseManager dbManager,
-            EventBus eventBus) {
+    public AuthenticationServer(DatabaseManager dbManager, EventBus eventBus) {
+        this(dbManager, eventBus, new DefenseEngine());
+    }
+
+    public AuthenticationServer(DatabaseManager dbManager, EventBus eventBus,
+                                 DefenseEngine defenseEngine) {
+        if (dbManager == null) {
+            throw new IllegalArgumentException("dbManager cannot be null");
+        }
+        if (eventBus == null) {
+            throw new IllegalArgumentException("eventBus cannot be null");
+        }
+        if (defenseEngine == null) {
+            throw new IllegalArgumentException("defenseEngine cannot be null");
+        }
 
         this.dbManager = dbManager;
         this.eventBus = eventBus;
         this.userRepository = new UserRepository(dbManager);
-
-        this.handlerPool = Executors.newFixedThreadPool(
-                AppConfig.SERVER_HANDLER_POOL_SIZE);
+        this.defenseEngine = defenseEngine;
+        this.handlerPool = Executors.newFixedThreadPool(AppConfig.SERVER_HANDLER_POOL_SIZE);
     }
 
     public synchronized void start() throws IOException {
@@ -61,8 +73,7 @@ public final class AuthenticationServer {
         serverSocket = new ServerSocket(
                 AppConfig.SERVER_PORT,
                 50,
-                java.net.InetAddress.getByName(
-                        AppConfig.SERVER_HOST));
+                java.net.InetAddress.getByName(AppConfig.SERVER_HOST));
 
         running = true;
 
@@ -72,42 +83,58 @@ public final class AuthenticationServer {
                 null,
                 "SERVER",
                 "STARTED",
-                "Authentication server started"
-        );
+                "Authentication server started");
 
-        acceptThread = new Thread(
-                this::acceptLoop,
-                "anvex-auth-server");
-
+        acceptThread = new Thread(this::acceptLoop, "anvex-auth-server");
         acceptThread.setDaemon(true);
         acceptThread.start();
 
-        logger.info(
-                "Authentication server started on {}:{}",
-                AppConfig.SERVER_HOST,
-                AppConfig.SERVER_PORT);
+        logger.info("Authentication server started on {}:{}", AppConfig.SERVER_HOST, AppConfig.SERVER_PORT);
     }
 
     private void acceptLoop() {
         while (running) {
             try {
                 Socket socket = serverSocket.accept();
-
-                handlerPool.submit(
-                        new RequestHandler(
-                                socket,
-                                userRepository,
-                                eventBus,
-                                currentRunId.get()));
-
+                handlerPool.submit(new RequestHandler(
+                        socket,
+                        userRepository,
+                        eventBus,
+                        defenseEngine,
+                        currentRunId.get()));
             } catch (IOException e) {
                 if (running) {
-                    logger.error(
-                            "Error accepting client connection",
-                            e);
+                    logger.error("Error accepting client connection", e);
                 }
             }
         }
+    }
+
+    /** Enables exactly one active defense strategy, replacing any previous strategies. */
+    public synchronized void enableDefense(DefenseStrategy strategy) {
+        if (strategy == null) {
+            throw new IllegalArgumentException("strategy cannot be null");
+        }
+        defenseEngine.clearStrategies();
+        defenseEngine.addStrategy(strategy);
+    }
+
+    /** Disables all active authentication defenses without deleting historical data. */
+    public synchronized void disableDefense() {
+        defenseEngine.clearStrategies();
+    }
+
+    /** Clears live defense state, including account failure counters and locks. */
+    public synchronized void resetDefense() {
+        defenseEngine.reset();
+    }
+
+    public boolean isDefenseEnabled() {
+        return !defenseEngine.isEmpty();
+    }
+
+    public DefenseEngine getDefenseEngine() {
+        return defenseEngine;
     }
 
     private void publishEvent(
@@ -154,13 +181,9 @@ public final class AuthenticationServer {
         handlerPool.shutdown();
 
         try {
-            if (!handlerPool.awaitTermination(
-                    2,
-                    TimeUnit.SECONDS)) {
-
+            if (!handlerPool.awaitTermination(2, TimeUnit.SECONDS)) {
                 handlerPool.shutdownNow();
             }
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             handlerPool.shutdownNow();
@@ -172,8 +195,7 @@ public final class AuthenticationServer {
                 null,
                 "SERVER",
                 "STOPPED",
-                "Authentication server stopped"
-        );
+                "Authentication server stopped");
 
         logger.info("Authentication server stopped");
     }
