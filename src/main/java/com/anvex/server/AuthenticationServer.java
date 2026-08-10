@@ -251,6 +251,22 @@ public final class AuthenticationServer {
         return running;
     }
 
+    /** Switches the active experiment run without restarting the server. */
+    public synchronized void beginRun(long runId) {
+        if (runId <= 0) {
+            throw new IllegalArgumentException("runId must be positive");
+        }
+        currentRunId.set(runId);
+    }
+
+    /**
+     * Drain barrier: submitting a marker after all currently queued handlers
+     * guarantees that every earlier request has finished when this returns.
+     */
+    public void awaitRequestDrain() throws Exception {
+        handlerPool.submit(() -> { }).get();
+    }
+
     public long getCurrentRunId() {
         return currentRunId.get();
     }
