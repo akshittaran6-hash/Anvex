@@ -108,6 +108,10 @@ public final class BeforeAfterExperiment {
         server.getDetectionEngine().addAlertListener(alertPersistenceListener);
 
         try {
+            // Set the run before any run-scoped defense events are published.
+            server.beginRun(runId);
+            eventLog.setCurrentRunId(runId);
+
             server.resetDefense();
             server.resetDetection();
 
@@ -117,11 +121,10 @@ public final class BeforeAfterExperiment {
                 server.disableDefense();
             }
 
-            server.beginRun(runId);
-            eventLog.setCurrentRunId(runId);
-
-            publish(runId, SecurityEventType.RUN_STARTED, "RUN", "STARTED", "Experiment run started");
-            publish(runId, SecurityEventType.ATTACK_STARTED, "ATTACK", "STARTED", "Attack scenario started");
+            publish(runId, SecurityEventType.RUN_STARTED,
+                    "RUN", "STARTED", "Experiment run started");
+            publish(runId, SecurityEventType.ATTACK_STARTED,
+                    "ATTACK", "STARTED", "Attack scenario started");
 
             AttackRunner runner = new AttackRunner(
                     scenario,
