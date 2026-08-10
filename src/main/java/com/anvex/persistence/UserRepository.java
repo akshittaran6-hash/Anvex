@@ -2,7 +2,6 @@ package com.anvex.persistence;
 
 import org.slf4j.Logger;
 import com.anvex.util.PasswordUtil;
-import com.anvex.util.PasswordUtil;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
@@ -98,10 +97,12 @@ public final class UserRepository {
         String sql = "INSERT INTO users (username, password_hash, role, enabled) VALUES (?, ?, ?, TRUE)";
         try (Connection conn = dbManager.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
+
             stmt.setString(1, username);
             stmt.setString(2, passwordHash);
             stmt.setString(3, role);
             stmt.executeUpdate();
+
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     long id = rs.getLong(1);
@@ -111,6 +112,7 @@ public final class UserRepository {
         } catch (SQLException e) {
             logger.error("Error creating user: {}", username, e);
         }
+
         throw new RuntimeException("Failed to create user: " + username);
     }
 

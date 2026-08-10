@@ -17,4 +17,5 @@ module com.anvex {
     exports com.anvex.event;
     exports com.anvex.monitoring;
     exports com.anvex.persistence;
+    exports com.anvex.server;
 }

@@ -54,12 +54,10 @@ public final class DatabaseManager {
         }
     }
 
-    public Connection getConnection() throws SQLException {
-        if (connection == null || connection.isClosed()) {
-            connection = DriverManager.getConnection(dbUrl, DB_USER, DB_PASSWORD);
-            logger.debug("New H2 connection established: {}", dbUrl);
-        }
-        return connection;
+    public synchronized Connection getConnection() throws SQLException {
+        Connection conn = DriverManager.getConnection(dbUrl, DB_USER, DB_PASSWORD);
+        logger.debug("New H2 connection established: {}", dbUrl);
+        return conn;
     }
 
     public void initialize() throws SQLException {
