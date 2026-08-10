@@ -19,6 +19,10 @@ public final class DefenseEngine {
         strategies.clear();
     }
 
+    public boolean isEmpty() {
+        return strategies.isEmpty();
+    }
+
     public boolean isBlocked(String username) {
         for (DefenseStrategy strategy : strategies) {
             if (strategy.isBlocked(username)) {
@@ -29,6 +33,10 @@ public final class DefenseEngine {
     }
 
     public AuthenticationDecision authenticate(String username, Supplier<Boolean> credentialVerifier) {
+        if (credentialVerifier == null) {
+            throw new IllegalArgumentException("credentialVerifier cannot be null");
+        }
+
         for (DefenseStrategy strategy : strategies) {
             AuthenticationDecision decision = strategy.authenticate(username, credentialVerifier);
             if (decision == AuthenticationDecision.BLOCKED || decision == AuthenticationDecision.FAILURE) {
