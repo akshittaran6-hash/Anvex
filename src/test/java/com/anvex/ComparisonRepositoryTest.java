@@ -33,9 +33,11 @@ class ComparisonRepositoryTest {
     @Test
     void savesComparison() throws Exception {
         MetricsCollector.MetricsSnapshot before =
-                new MetricsCollector.MetricsSnapshot(2000, 1999, 0, 1, 1, false, 100);
+                new MetricsCollector.MetricsSnapshot(
+                        2000, 1999, 0, 1, 1, 0, 1, true, false, 100);
         MetricsCollector.MetricsSnapshot after =
-                new MetricsCollector.MetricsSnapshot(2000, 5, 1995, 0, 1, false, 120);
+                new MetricsCollector.MetricsSnapshot(
+                        2000, 5, 1995, 0, 1, 1, 1, false, true, 120);
 
         ComparisonResult comparison = new ComparisonResult(11, 12, before, after);
         long comparisonId = repository.save(comparison);
