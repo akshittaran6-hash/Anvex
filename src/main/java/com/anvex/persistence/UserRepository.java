@@ -1,6 +1,8 @@
 package com.anvex.persistence;
 
 import org.slf4j.Logger;
+import com.anvex.util.PasswordUtil;
+import com.anvex.util.PasswordUtil;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
