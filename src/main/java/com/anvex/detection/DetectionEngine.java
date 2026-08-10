@@ -17,7 +17,7 @@ public final class DetectionEngine implements EventListener {
 
     private final List<DetectionRule> rules = new CopyOnWriteArrayList<>();
     private final List<Alert> alerts = new CopyOnWriteArrayList<>();
-    private volatile AlertListener alertListener;
+    private final List<AlertListener> alertListeners = new CopyOnWriteArrayList<>();
 
     public DetectionEngine() {
     }
@@ -35,8 +35,25 @@ public final class DetectionEngine implements EventListener {
         rules.add(rule);
     }
 
+    /** Replaces all alert listeners; retained for compatibility with existing callers. */
     public void setAlertListener(AlertListener listener) {
-        this.alertListener = listener;
+        alertListeners.clear();
+        if (listener != null) {
+            alertListeners.add(listener);
+        }
+    }
+
+    public void addAlertListener(AlertListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("Alert listener cannot be null");
+        }
+        alertListeners.add(listener);
+    }
+
+    public void removeAlertListener(AlertListener listener) {
+        if (listener != null) {
+            alertListeners.remove(listener);
+        }
     }
 
     @Override
@@ -58,9 +75,12 @@ public final class DetectionEngine implements EventListener {
         alerts.add(alert);
         logger.warn("Detection alert {} for {}: {}", alert.ruleId(), alert.username(), alert.explanation());
 
-        AlertListener listener = alertListener;
-        if (listener != null) {
-            listener.onAlert(alert);
+        for (AlertListener listener : alertListeners) {
+            try {
+                listener.onAlert(alert);
+            } catch (RuntimeException e) {
+                logger.error("Alert listener failed for {}", alert.alertId(), e);
+            }
         }
     }
 
