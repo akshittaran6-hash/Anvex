@@ -93,9 +93,15 @@ public final class BeforeAfterExperiment {
         PersistenceEventListener persistenceListener = new PersistenceEventListener(
                 new SecurityEventRepository(dbManager), tracker);
 
-        var alertRepository = new AlertRepository(dbManager);
-        com.anvex.detection.DetectionEngine.AlertListener alertPersistenceListener =
-                alertRepository::save;
+        AlertRepository alertRepository = new AlertRepository(dbManager);
+        com.anvex.detection.DetectionEngine.AlertListener alertPersistenceListener = alert -> {
+            try {
+                alertRepository.save(alert);
+            } catch (Exception e) {
+                throw new IllegalStateException(
+                        "Failed to persist alert " + alert.alertId(), e);
+            }
+        };
 
         eventBus.subscribe(metricsListener);
         eventBus.subscribe(persistenceListener);
@@ -231,10 +237,10 @@ public final class BeforeAfterExperiment {
                 SecurityEvent.builder()
                         .eventId(UUID.randomUUID().toString())
                         .runId(runId)
-                        .eventType(type)
                         .source(source)
                         .outcome(outcome)
                         .message(message)
+                        .eventType(type)
                         .build()
         );
     }
