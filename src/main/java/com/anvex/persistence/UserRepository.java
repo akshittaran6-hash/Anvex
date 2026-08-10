@@ -1,5 +1,6 @@
 package com.anvex.persistence;
 
+import com.anvex.util.PasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,10 +87,11 @@ public final class UserRepository {
     }
 
     public boolean verifyCredentials(String username, String password) {
-        return findByUsername(username)
-                .filter(User::isEnabled)
-                .map(user -> PasswordUtil.verifyPassword(password, user.getPasswordHash()))
-                .orElse(false);
+        Optional<User> userOpt = findByUsername(username);
+        if (userOpt.isEmpty()) return false;
+        User user = userOpt.get();
+        if (!user.isEnabled()) return false;
+        return PasswordUtil.verifyPassword(password, user.getPasswordHash());
     }
 
     public User createUser(String username, String passwordHash, String role) {
