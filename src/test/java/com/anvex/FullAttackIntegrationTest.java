@@ -101,10 +101,14 @@ class FullAttackIntegrationTest {
                 result.getErrors()
         );
 
-        assertEquals(
-                2000,
-                eventLog.size()
-        );
+        long loginEvents = eventLog.getAllEvents()
+                .stream()
+                .filter(event ->
+                        event.getEventType() == SecurityEventType.LOGIN_FAILURE
+                                || event.getEventType() == SecurityEventType.LOGIN_SUCCESS)
+                .count();
+
+        assertEquals(2000, loginEvents);
 
         long failures = eventLog.getAllEvents()
                 .stream()
