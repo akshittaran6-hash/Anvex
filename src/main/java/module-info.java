@@ -14,4 +14,7 @@ module com.anvex {
     exports com.anvex.app;
     exports com.anvex.ui;
     exports com.anvex.util;
+    exports com.anvex.event;
+    exports com.anvex.monitoring;
+    exports com.anvex.persistence;
 }

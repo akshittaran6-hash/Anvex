@@ -1,0 +1,76 @@
+-- ANVEX Database Schema
+-- H2 Embedded Database
+
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Scenario runs table
+CREATE TABLE IF NOT EXISTS scenario_runs (
+    run_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    run_label VARCHAR(100) NOT NULL,
+    defense_enabled BOOLEAN NOT NULL,
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'RUNNING',
+    persistence_status VARCHAR(50) DEFAULT 'PENDING'
+);
+
+-- Security events table
+CREATE TABLE IF NOT EXISTS security_events (
+    event_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    sequence_no BIGINT NOT NULL,
+    run_id BIGINT NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
+    event_type VARCHAR(50) NOT NULL,
+    username VARCHAR(100),
+    client_type VARCHAR(50),
+    message VARCHAR(500),
+    FOREIGN KEY (run_id) REFERENCES scenario_runs(run_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_security_events_run_id ON security_events(run_id);
+CREATE INDEX IF NOT EXISTS idx_security_events_sequence ON security_events(sequence_no);
+
+-- Alerts table
+CREATE TABLE IF NOT EXISTS alerts (
+    alert_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    run_id BIGINT NOT NULL,
+    rule_id VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    timestamp TIMESTAMP NOT NULL,
+    username VARCHAR(100),
+    explanation VARCHAR(500),
+    FOREIGN KEY (run_id) REFERENCES scenario_runs(run_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_alerts_run_id ON alerts(run_id);
+
+-- Metrics snapshots table
+CREATE TABLE IF NOT EXISTS metrics_snapshots (
+    run_id BIGINT PRIMARY KEY,
+    total_attempts BIGINT DEFAULT 0,
+    failures BIGINT DEFAULT 0,
+    blocked BIGINT DEFAULT 0,
+    attacker_success BIGINT DEFAULT 0,
+    legitimate_success BIGINT DEFAULT 0,
+    compromised BOOLEAN DEFAULT FALSE,
+    duration_ms BIGINT DEFAULT 0,
+    FOREIGN KEY (run_id) REFERENCES scenario_runs(run_id)
+);
+
+-- Comparison results table
+CREATE TABLE IF NOT EXISTS comparison_results (
+    comparison_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    before_run_id BIGINT NOT NULL,
+    after_run_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (before_run_id) REFERENCES scenario_runs(run_id),
+    FOREIGN KEY (after_run_id) REFERENCES scenario_runs(run_id)
+);

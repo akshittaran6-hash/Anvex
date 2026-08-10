@@ -1,0 +1,17 @@
+package com.anvex.event;
+
+public enum SecurityEventType {
+    SERVER_STARTED,
+    SERVER_STOPPED,
+    ATTACK_STARTED,
+    ATTACK_COMPLETED,
+    LOGIN_SUCCESS,
+    LOGIN_FAILURE,
+    LOGIN_BLOCKED,
+    ALERT_TRIGGERED,
+    ACCOUNT_LOCKED,
+    DEFENSE_ENABLED,
+    DEFENSE_DISABLED,
+    RUN_STARTED,
+    RUN_COMPLETED
+}
