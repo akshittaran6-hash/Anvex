@@ -10,6 +10,7 @@ module com.anvex {
     opens com.anvex.app to javafx.fxml;
     opens com.anvex.ui to javafx.fxml;
     opens com.anvex.util to javafx.fxml;
+    opens com.anvex.server to javafx.fxml;
 
     exports com.anvex.app;
     exports com.anvex.ui;
@@ -17,4 +18,5 @@ module com.anvex {
     exports com.anvex.event;
     exports com.anvex.monitoring;
     exports com.anvex.persistence;
+    exports com.anvex.server;
 }
