@@ -13,7 +13,6 @@ public final class DatabaseManager {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseManager.class);
 
-    // Use in-memory DB for tests, file-based for app
     private static final String TEST_DB_URL = "jdbc:h2:mem:anvex_test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
     private static final String FILE_DB_URL = "jdbc:h2:file:./data/anvex;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1;MODE=PostgreSQL";
     private static final String DB_USER = "sa";
