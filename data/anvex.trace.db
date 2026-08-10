@@ -436,3 +436,23 @@ SELECT id, username, password_hash, role, enabled FROM users ORDER BY id [42104-
 2026-08-10 08:14:32.151130Z jdbc[4]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
 SELECT id, username, password_hash, role, enabled FROM users ORDER BY id [42104-224]
+2026-08-10 08:19:15.677532Z jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users ORDER BY id [42104-224]
+2026-08-10 08:20:09.527481Z jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users ORDER BY id [42104-224]
+2026-08-10 08:20:55.475557Z jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users ORDER BY id [42104-224]
+2026-08-10 08:25:28.332284Z jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement "CREATE TABLE users (\000a    id BIGINT [*]AUTO_INCREMENT PRIMARY KEY,\000a    username VARCHAR(100) NOT NULL UNIQUE,\000a    password_hash VARCHAR(255) NOT NULL,\000a    role VARCHAR(50) NOT NULL,\000a    enabled BOOLEAN DEFAULT TRUE,\000a    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\000a)\000a"; expected "ARRAY, INVISIBLE, VISIBLE, NOT NULL, DEFAULT, GENERATED, ON UPDATE, NOT NULL, DEFAULT ON NULL, SEQUENCE, SELECTIVITY, COMMENT, CONSTRAINT, COMMENT, PRIMARY KEY, UNIQUE, NOT NULL, CHECK, REFERENCES, ,, )"; SQL statement:
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL,
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+ [42001-224]
