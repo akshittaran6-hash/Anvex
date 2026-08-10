@@ -3,21 +3,28 @@ package com.anvex.attack;
 import com.anvex.defense.DefenseStrategy;
 import com.anvex.event.CanonicalEventLog;
 import com.anvex.event.EventBus;
+import com.anvex.event.EventListener;
 import com.anvex.event.SecurityEvent;
 import com.anvex.event.SecurityEventType;
 import com.anvex.monitoring.ComparisonResult;
 import com.anvex.monitoring.MetricsCollector;
+import com.anvex.persistence.AlertRepository;
+import com.anvex.persistence.ComparisonRepository;
 import com.anvex.persistence.DatabaseManager;
+import com.anvex.persistence.PersistenceEventListener;
+import com.anvex.persistence.RunPersistenceTracker;
 import com.anvex.persistence.ScenarioRunRepository;
+import com.anvex.persistence.SecurityEventRepository;
 import com.anvex.server.AuthenticationServer;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-/**
- * Orchestrates the canonical ANVEX before/after experiment.
- */
+/** Orchestrates the canonical ANVEX before/after experiment. */
 public final class BeforeAfterExperiment {
+
+    private static final long PERSISTENCE_TIMEOUT_MS = 5_000;
 
     private final DatabaseManager dbManager;
     private final AuthenticationServer server;
@@ -56,28 +63,18 @@ public final class BeforeAfterExperiment {
 
         ScenarioRunRepository runs = new ScenarioRunRepository(dbManager);
 
-        RunResult before = executeRun(
-                runs,
-                scenario,
-                false,
-                null,
-                "DEFENSE_OFF"
-        );
+        RunResult before = executeRun(runs, scenario, false, null, "DEFENSE_OFF");
+        RunResult after = executeRun(runs, scenario, true, defense, "DEFENSE_ON");
 
-        RunResult after = executeRun(
-                runs,
-                scenario,
-                true,
-                defense,
-                "DEFENSE_ON"
-        );
-
-        return new ComparisonResult(
+        ComparisonResult comparison = new ComparisonResult(
                 before.runId(),
                 after.runId(),
                 before.metrics(),
                 after.metrics()
         );
+
+        new ComparisonRepository(dbManager).save(comparison);
+        return comparison;
     }
 
     private RunResult executeRun(
@@ -89,9 +86,20 @@ public final class BeforeAfterExperiment {
     ) throws Exception {
 
         long runId = runs.createRun(label, defenseEnabled);
-
         MetricsCollector metrics = new MetricsCollector();
-        eventBus.subscribe(metrics::onEvent);
+        EventListener metricsListener = metrics::onEvent;
+
+        RunPersistenceTracker tracker = new RunPersistenceTracker();
+        PersistenceEventListener persistenceListener = new PersistenceEventListener(
+                new SecurityEventRepository(dbManager), tracker);
+
+        var alertRepository = new AlertRepository(dbManager);
+        com.anvex.detection.DetectionEngine.AlertListener alertPersistenceListener =
+                alertRepository::save;
+
+        eventBus.subscribe(metricsListener);
+        eventBus.subscribe(persistenceListener);
+        server.getDetectionEngine().addAlertListener(alertPersistenceListener);
 
         try {
             server.resetDefense();
@@ -106,21 +114,8 @@ public final class BeforeAfterExperiment {
             server.beginRun(runId);
             eventLog.setCurrentRunId(runId);
 
-            publish(
-                    runId,
-                    SecurityEventType.RUN_STARTED,
-                    "RUN",
-                    "STARTED",
-                    "Experiment run started"
-            );
-
-            publish(
-                    runId,
-                    SecurityEventType.ATTACK_STARTED,
-                    "ATTACK",
-                    "STARTED",
-                    "Attack scenario started"
-            );
+            publish(runId, SecurityEventType.RUN_STARTED, "RUN", "STARTED", "Experiment run started");
+            publish(runId, SecurityEventType.ATTACK_STARTED, "ATTACK", "STARTED", "Attack scenario started");
 
             AttackRunner runner = new AttackRunner(
                     scenario,
@@ -130,33 +125,28 @@ public final class BeforeAfterExperiment {
 
             AttackRunner.Result attackResult = runner.run();
 
-            // Critical: wait for all asynchronous socket handlers.
+            // Critical drain barrier: all submitted socket handlers finish before
+            // the run is closed or the next run starts.
             server.awaitRequestDrain();
 
-            publish(
-                    runId,
-                    SecurityEventType.ATTACK_COMPLETED,
-                    "ATTACK",
-                    "COMPLETED",
-                    "Attack scenario completed"
-            );
-
-            publish(
-                    runId,
-                    SecurityEventType.RUN_COMPLETED,
-                    "RUN",
-                    "COMPLETED",
-                    "Experiment run completed"
-            );
+            publish(runId, SecurityEventType.ATTACK_COMPLETED,
+                    "ATTACK", "COMPLETED", "Attack scenario completed");
+            publish(runId, SecurityEventType.RUN_COMPLETED,
+                    "RUN", "COMPLETED", "Experiment run completed");
 
             server.awaitRequestDrain();
 
             MetricsCollector.MetricsSnapshot snapshot = metrics.snapshot();
-
             validateAccounting(runId, attackResult, snapshot);
 
             runs.saveMetrics(runId, snapshot);
-            runs.completeRun(runId, "COMPLETED", "CONFIRMED");
+
+            boolean persistenceConfirmed = awaitPersistenceConfirmation(tracker, runId);
+            runs.completeRun(
+                    runId,
+                    "COMPLETED",
+                    persistenceConfirmed ? "CONFIRMED" : "PERSISTENCE_AT_RISK"
+            );
 
             return new RunResult(runId, snapshot);
 
@@ -164,8 +154,25 @@ public final class BeforeAfterExperiment {
             runs.completeRun(runId, "FAILED", "AT_RISK");
             throw e;
         } finally {
-            eventBus.unsubscribe(metrics::onEvent);
+            server.getDetectionEngine().removeAlertListener(alertPersistenceListener);
+            eventBus.unsubscribe(persistenceListener);
+            eventBus.unsubscribe(metricsListener);
+            tracker.clear(runId);
         }
+    }
+
+    private boolean awaitPersistenceConfirmation(
+            RunPersistenceTracker tracker,
+            long runId
+    ) throws InterruptedException {
+        long deadline = System.nanoTime()
+                + TimeUnit.MILLISECONDS.toNanos(PERSISTENCE_TIMEOUT_MS);
+
+        while (!tracker.isConfirmed(runId) && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+        }
+
+        return tracker.isConfirmed(runId);
     }
 
     private void validateAccounting(
@@ -176,20 +183,18 @@ public final class BeforeAfterExperiment {
         List<SecurityEvent> events = eventLog.getEventsForRun(runId);
 
         long loginAttempts = events.stream()
-                .filter(e ->
-                        e.getClientType() != null
-                                && "ATTACKER".equals(e.getClientType())
-                                && (e.getEventType() == SecurityEventType.LOGIN_FAILURE
-                                || e.getEventType() == SecurityEventType.LOGIN_SUCCESS
-                                || e.getEventType() == SecurityEventType.LOGIN_BLOCKED))
+                .filter(e -> e.getClientType() != null
+                        && "ATTACKER".equals(e.getClientType())
+                        && (e.getEventType() == SecurityEventType.LOGIN_FAILURE
+                        || e.getEventType() == SecurityEventType.LOGIN_SUCCESS
+                        || e.getEventType() == SecurityEventType.LOGIN_BLOCKED))
                 .count();
 
         if (loginAttempts != attackResult.getTotalAttempts()) {
             throw new IllegalStateException(
                     "Event accounting mismatch for run " + runId
                             + ": attack=" + attackResult.getTotalAttempts()
-                            + ", events=" + loginAttempts
-            );
+                            + ", events=" + loginAttempts);
         }
 
         long failures = events.stream()
@@ -211,8 +216,7 @@ public final class BeforeAfterExperiment {
                 || successes != metrics.attackerSuccesses()
                 || blocked != metrics.attackerBlocked()) {
             throw new IllegalStateException(
-                    "Metrics do not match canonical event stream for run " + runId
-            );
+                    "Metrics do not match canonical event stream for run " + runId);
         }
     }
 
