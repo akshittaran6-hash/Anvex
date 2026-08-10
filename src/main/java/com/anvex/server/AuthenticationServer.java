@@ -2,6 +2,8 @@ package com.anvex.server;
 
 import com.anvex.defense.DefenseEngine;
 import com.anvex.defense.DefenseStrategy;
+import com.anvex.detection.DetectionEngine;
+import com.anvex.detection.rules.RepeatedFailedLoginRule;
 import com.anvex.event.EventBus;
 import com.anvex.event.SecurityEvent;
 import com.anvex.event.SecurityEventType;
@@ -29,6 +31,7 @@ public final class AuthenticationServer {
     private final UserRepository userRepository;
     private final ExecutorService handlerPool;
     private final DefenseEngine defenseEngine;
+    private final DetectionEngine detectionEngine;
 
     private final AtomicLong currentRunId = new AtomicLong(0);
 
@@ -37,11 +40,17 @@ public final class AuthenticationServer {
     private Thread acceptThread;
 
     public AuthenticationServer(DatabaseManager dbManager, EventBus eventBus) {
-        this(dbManager, eventBus, new DefenseEngine());
+        this(dbManager, eventBus, new DefenseEngine(), createDefaultDetectionEngine());
     }
 
     public AuthenticationServer(DatabaseManager dbManager, EventBus eventBus,
                                  DefenseEngine defenseEngine) {
+        this(dbManager, eventBus, defenseEngine, createDefaultDetectionEngine());
+    }
+
+    public AuthenticationServer(DatabaseManager dbManager, EventBus eventBus,
+                                 DefenseEngine defenseEngine,
+                                 DetectionEngine detectionEngine) {
         if (dbManager == null) {
             throw new IllegalArgumentException("dbManager cannot be null");
         }
@@ -51,12 +60,27 @@ public final class AuthenticationServer {
         if (defenseEngine == null) {
             throw new IllegalArgumentException("defenseEngine cannot be null");
         }
+        if (detectionEngine == null) {
+            throw new IllegalArgumentException("detectionEngine cannot be null");
+        }
 
         this.dbManager = dbManager;
         this.eventBus = eventBus;
         this.userRepository = new UserRepository(dbManager);
         this.defenseEngine = defenseEngine;
+        this.detectionEngine = detectionEngine;
         this.handlerPool = Executors.newFixedThreadPool(AppConfig.SERVER_HANDLER_POOL_SIZE);
+
+        // Detection observes the same canonical event stream as persistence and other
+        // subscribers. Alerts are fed back into that stream as ALERT_TRIGGERED events.
+        eventBus.subscribe(detectionEngine);
+        detectionEngine.setAlertListener(alert -> eventBus.publish(DetectionEngine.toAlertEvent(alert)));
+    }
+
+    private static DetectionEngine createDefaultDetectionEngine() {
+        DetectionEngine engine = new DetectionEngine();
+        engine.addRule(new RepeatedFailedLoginRule());
+        return engine;
     }
 
     public synchronized void start() throws IOException {
@@ -117,16 +141,35 @@ public final class AuthenticationServer {
         }
         defenseEngine.clearStrategies();
         defenseEngine.addStrategy(strategy);
+        publishEvent(
+                SecurityEventType.DEFENSE_ENABLED,
+                null,
+                "SYSTEM",
+                strategy.getName(),
+                "ENABLED",
+                "Defense enabled: " + strategy.getName());
     }
 
     /** Disables all active authentication defenses without deleting historical data. */
     public synchronized void disableDefense() {
         defenseEngine.clearStrategies();
+        publishEvent(
+                SecurityEventType.DEFENSE_DISABLED,
+                null,
+                "SYSTEM",
+                "DEFENSE_ENGINE",
+                "DISABLED",
+                "All authentication defenses disabled");
     }
 
     /** Clears live defense state, including account failure counters and locks. */
     public synchronized void resetDefense() {
         defenseEngine.reset();
+    }
+
+    /** Clears in-memory detection state while retaining historical events. */
+    public synchronized void resetDetection() {
+        detectionEngine.reset();
     }
 
     public boolean isDefenseEnabled() {
@@ -135,6 +178,10 @@ public final class AuthenticationServer {
 
     public DefenseEngine getDefenseEngine() {
         return defenseEngine;
+    }
+
+    public DetectionEngine getDetectionEngine() {
+        return detectionEngine;
     }
 
     private void publishEvent(
