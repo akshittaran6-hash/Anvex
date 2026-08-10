@@ -190,3 +190,27 @@ SELECT id, username, password_hash, role, enabled FROM users WHERE id = ? [42104
 2026-08-10 07:49:56.850204Z jdbc[11]: exception
 org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
 SELECT id, username, password_hash, role, enabled FROM users WHERE username = ? [42104-224]
+2026-08-10 07:53:53.225475Z jdbc[4]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users ORDER BY id [42104-224]
+2026-08-10 07:53:53.645179Z jdbc[5]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE username = ? [42104-224]
+2026-08-10 07:53:53.777402Z jdbc[6]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE username = ? [42104-224]
+2026-08-10 07:53:53.801188Z jdbc[7]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE role = ? ORDER BY id [42104-224]
+2026-08-10 07:53:53.828611Z jdbc[8]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE username = ? [42104-224]
+2026-08-10 07:53:53.860460Z jdbc[9]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE username = ? [42104-224]
+2026-08-10 07:53:53.875442Z jdbc[10]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE id = ? [42104-224]
+2026-08-10 07:53:53.906489Z jdbc[11]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "USERS" not found (this database is empty); SQL statement:
+SELECT id, username, password_hash, role, enabled FROM users WHERE username = ? [42104-224]
