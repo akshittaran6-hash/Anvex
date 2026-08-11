@@ -7,93 +7,129 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.geometry.Insets?>
 
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.anvex.ui.DashboardController">
     <top>
-        <VBox spacing="5" styleClass="header-pane">
-            <padding><Insets top="10" right="20" bottom="5" left="20"/></padding>
-            <HBox spacing="20" alignment="CENTER_LEFT">
-                <Label text="ANVEX" styleClass="title-label"/>
-                <Label text="Local Cybersecurity Laboratory" styleClass="subtitle-label"/>
+        <VBox styleClass="header-pane">
+            <padding><Insets top="14" right="24" bottom="12" left="24"/></padding>
+            <HBox spacing="18" alignment="CENTER_LEFT">
+                <VBox spacing="2">
+                    <Label text="ANVEX" styleClass="title-label"/>
+                    <Label text="LOCAL CYBERSECURITY LABORATORY" styleClass="subtitle-label"/>
+                </VBox>
                 <Separator orientation="VERTICAL" styleClass="separator"/>
                 <Label fx:id="serverStatusLabel" text="SERVER: OFFLINE" styleClass="status-label offline"/>
                 <Label fx:id="defenseStatusLabel" text="DEFENSE: OFF" styleClass="status-label offline"/>
-                <Label fx:id="scenarioLabel" text="SCENARIO: 1" styleClass="info-label"/>
+                <Label fx:id="scenarioLabel" text="SCENARIO 1" styleClass="info-label"/>
                 <Label fx:id="runLabel" text="RUN: —" styleClass="info-label"/>
             </HBox>
         </VBox>
     </top>
-    
+
     <center>
-        <VBox spacing="10" styleClass="main-content">
-            <padding><Insets top="10" right="20" bottom="10" left="20"/></padding>
-            
-            <!-- Topology Area -->
-            <VBox fx:id="topologyArea" styleClass="topology-pane" prefHeight="200">
-                <Label text="NETWORK TOPOLOGY" styleClass="section-title"/>
-                <VBox fx:id="topologyContent" styleClass="topology-content" VBox.vgrow="ALWAYS"/>
+        <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="dashboard-scroll">
+            <VBox spacing="14" styleClass="main-content">
+                <padding><Insets top="18" right="24" bottom="18" left="24"/></padding>
+
+                <VBox spacing="10" styleClass="panel topology-pane">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="NETWORK TOPOLOGY" styleClass="section-title"/>
+                        <Label text="LOCAL / ISOLATED" styleClass="section-badge" />
+                    </HBox>
+                    <HBox fx:id="topologyContent" spacing="14" alignment="CENTER" styleClass="topology-content">
+                        <VBox styleClass="node attacker-node" spacing="5" alignment="CENTER">
+                            <Label text="ATTACKER" styleClass="node-title"/>
+                            <Label text="2000 REQUESTS" styleClass="node-meta"/>
+                        </VBox>
+                        <Label text="→" styleClass="topology-arrow"/>
+                        <VBox styleClass="node server-node" spacing="5" alignment="CENTER">
+                            <Label text="AUTH SERVER" styleClass="node-title"/>
+                            <Label text="127.0.0.1:9090" styleClass="node-meta"/>
+                        </VBox>
+                        <Label text="→" styleClass="topology-arrow"/>
+                        <VBox styleClass="node database-node" spacing="5" alignment="CENTER">
+                            <Label text="H2 DATABASE" styleClass="node-title"/>
+                            <Label text="EVENTS + METRICS" styleClass="node-meta"/>
+                        </VBox>
+                        <VBox styleClass="defense-summary" spacing="4">
+                            <Label text="ACCOUNT LOCKOUT" styleClass="defense-title"/>
+                            <Label text="Threshold: 5 failures" styleClass="node-meta"/>
+                            <Label text="LOCAL DEFENSE" styleClass="node-meta"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="10" styleClass="panel">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="EXPERIMENT OVERVIEW" styleClass="section-title"/>
+                        <Label text="LIVE METRICS" styleClass="section-badge"/>
+                    </HBox>
+                    <HBox spacing="10" styleClass="metrics-row">
+                        <VBox fx:id="totalAttemptsCard" styleClass="metric-card" HBox.hgrow="ALWAYS">
+                            <Label text="TOTAL ATTEMPTS" styleClass="metric-title"/>
+                            <Label fx:id="totalAttemptsValue" text="0" styleClass="metric-value"/>
+                        </VBox>
+                        <VBox fx:id="failedCard" styleClass="metric-card warning" HBox.hgrow="ALWAYS">
+                            <Label text="FAILED" styleClass="metric-title"/>
+                            <Label fx:id="failedValue" text="0" styleClass="metric-value"/>
+                        </VBox>
+                        <VBox fx:id="blockedCard" styleClass="metric-card blocked" HBox.hgrow="ALWAYS">
+                            <Label text="BLOCKED" styleClass="metric-title"/>
+                            <Label fx:id="blockedValue" text="0" styleClass="metric-value"/>
+                        </VBox>
+                        <VBox fx:id="successCard" styleClass="metric-card danger" HBox.hgrow="ALWAYS">
+                            <Label text="ATTACK SUCCESS" styleClass="metric-title"/>
+                            <Label fx:id="successValue" text="0" styleClass="metric-value"/>
+                        </VBox>
+                        <VBox fx:id="alertsCard" styleClass="metric-card alert" HBox.hgrow="ALWAYS">
+                            <Label text="ALERTS" styleClass="metric-title"/>
+                            <Label fx:id="alertsValue" text="0" styleClass="metric-value"/>
+                        </VBox>
+                        <VBox fx:id="legitSuccessCard" styleClass="metric-card success" HBox.hgrow="ALWAYS">
+                            <Label text="LEGIT SUCCESS" styleClass="metric-title"/>
+                            <Label fx:id="legitSuccessValue" text="0" styleClass="metric-value"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="10" styleClass="panel control-pane">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="EXPERIMENT CONTROL" styleClass="section-title"/>
+                        <Label text="CONTROLLED EXECUTION" styleClass="section-badge"/>
+                    </HBox>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button fx:id="startBaselineBtn" text="START BASELINE" styleClass="btn-primary" onAction="#handleStartBaseline"/>
+                        <Button fx:id="runAttackBtn" text="RUN ATTACK" styleClass="btn-danger" onAction="#handleRunAttack" disable="true"/>
+                        <Button fx:id="enableDefenseBtn" text="ENABLE DEFENSE" styleClass="btn-warning" onAction="#handleEnableDefense" disable="true"/>
+                        <Button fx:id="runProtectedAttackBtn" text="RUN PROTECTED ATTACK" styleClass="btn-success" onAction="#handleRunProtectedAttack" disable="true"/>
+                    </HBox>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Button fx:id="compareBtn" text="COMPARE RUNS" styleClass="btn-info" onAction="#handleCompare" disable="true"/>
+                        <Button fx:id="replayBtn" text="VIEW REPLAY" styleClass="btn-info" onAction="#handleReplay" disable="true"/>
+                        <Button fx:id="exportBtn" text="EXPORT REPORT" styleClass="btn-secondary" onAction="#handleExport" disable="true"/>
+                        <Button fx:id="resetBtn" text="RESET" styleClass="btn-secondary" onAction="#handleReset"/>
+                    </HBox>
+                </VBox>
+
+                <VBox spacing="8" styleClass="panel events-pane">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="SECURITY EVENT STREAM" styleClass="section-title"/>
+                        <Label text="CANONICAL EVENTS" styleClass="section-badge"/>
+                    </HBox>
+                    <ScrollPane fx:id="eventsScrollPane" styleClass="events-scroll" fitToWidth="true" prefHeight="260">
+                        <TextArea fx:id="eventsTextArea" editable="false" wrapText="true" styleClass="events-textarea"/>
+                    </ScrollPane>
+                </VBox>
             </VBox>
-            
-            <!-- Metric Cards -->
-            <HBox spacing="15" styleClass="metrics-row">
-                <VBox fx:id="totalAttemptsCard" styleClass="metric-card">
-                    <Label text="TOTAL ATTEMPTS" styleClass="metric-title"/>
-                    <Label fx:id="totalAttemptsValue" text="0" styleClass="metric-value"/>
-                </VBox>
-                <VBox fx:id="failedCard" styleClass="metric-card warning">
-                    <Label text="FAILED" styleClass="metric-title"/>
-                    <Label fx:id="failedValue" text="0" styleClass="metric-value"/>
-                </VBox>
-                <VBox fx:id="blockedCard" styleClass="metric-card blocked">
-                    <Label text="BLOCKED" styleClass="metric-title"/>
-                    <Label fx:id="blockedValue" text="0" styleClass="metric-value"/>
-                </VBox>
-                <VBox fx:id="successCard" styleClass="metric-card danger">
-                    <Label text="ATTACKER SUCCESS" styleClass="metric-title"/>
-                    <Label fx:id="successValue" text="0" styleClass="metric-value"/>
-                </VBox>
-                <VBox fx:id="alertsCard" styleClass="metric-card alert">
-                    <Label text="ALERTS" styleClass="metric-title"/>
-                    <Label fx:id="alertsValue" text="0" styleClass="metric-value"/>
-                </VBox>
-                <VBox fx:id="legitSuccessCard" styleClass="metric-card success">
-                    <Label text="LEGIT SUCCESS" styleClass="metric-title"/>
-                    <Label fx:id="legitSuccessValue" text="0" styleClass="metric-value"/>
-                </VBox>
-            </HBox>
-            
-            <!-- Scenario Control Panel -->
-            <VBox spacing="10" styleClass="control-pane">
-                <Label text="SCENARIO CONTROL" styleClass="section-title"/>
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Button fx:id="startBaselineBtn" text="START BASELINE" styleClass="btn-primary" onAction="#handleStartBaseline"/>
-                    <Button fx:id="runAttackBtn" text="RUN ATTACK" styleClass="btn-danger" onAction="#handleRunAttack" disable="true"/>
-                    <Button fx:id="enableDefenseBtn" text="ENABLE DEFENSE" styleClass="btn-warning" onAction="#handleEnableDefense" disable="true"/>
-                    <Button fx:id="runProtectedAttackBtn" text="RUN PROTECTED ATTACK" styleClass="btn-success" onAction="#handleRunProtectedAttack" disable="true"/>
-                    <Button fx:id="resetBtn" text="RESET" styleClass="btn-secondary" onAction="#handleReset"/>
-                    <Button fx:id="compareBtn" text="COMPARE RUNS" styleClass="btn-info" onAction="#handleCompare" disable="true"/>
-                    <Button fx:id="replayBtn" text="VIEW REPLAY" styleClass="btn-info" onAction="#handleReplay" disable="true"/>
-                    <Button fx:id="exportBtn" text="EXPORT REPORT" styleClass="btn-secondary" onAction="#handleExport" disable="true"/>
-                </HBox>
-            </VBox>
-            
-            <!-- Recent Events -->
-            <VBox spacing="5" styleClass="events-pane" VBox.vgrow="ALWAYS">
-                <Label text="RECENT EVENTS" styleClass="section-title"/>
-                <ScrollPane fx:id="eventsScrollPane" styleClass="events-scroll" VBox.vgrow="ALWAYS" fitToWidth="true">
-                    <TextArea fx:id="eventsTextArea" editable="false" wrapText="true" styleClass="events-textarea"/>
-                </ScrollPane>
-            </VBox>
-        </VBox>
+        </ScrollPane>
     </center>
-    
+
     <bottom>
-        <HBox styleClass="footer-pane" alignment="CENTER_RIGHT">
-            <padding><Insets top="5" right="20" bottom="5" left="20"/></padding>
-            <Label fx:id="footerLabel" text="ANVEX v1.0 — Educational Cybersecurity Laboratory" styleClass="footer-label"/>
+        <HBox styleClass="footer-pane" alignment="CENTER_LEFT">
+            <padding><Insets top="8" right="24" bottom="8" left="24"/></padding>
+            <Label fx:id="footerLabel" text="ANVEX v1.0  •  Educational Cybersecurity Laboratory  •  127.0.0.1 only" styleClass="footer-label"/>
         </HBox>
     </bottom>
 </BorderPane>
