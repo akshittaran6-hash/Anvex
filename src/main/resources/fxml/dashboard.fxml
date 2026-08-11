@@ -14,15 +14,18 @@
 <BorderPane fx:id="root" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.anvex.ui.DashboardController">
     <top>
         <VBox styleClass="header-pane">
-            <padding><Insets top="12" right="22" bottom="12" left="22"/></padding>
-            <HBox spacing="16" alignment="CENTER_LEFT">
-                <VBox spacing="1">
+            <padding><Insets top="10" right="20" bottom="9" left="20"/></padding>
+            <HBox spacing="14" alignment="CENTER_LEFT">
+                <VBox spacing="0">
                     <Label text="ANVEX" styleClass="title-label"/>
                     <Label text="LOCAL CYBERSECURITY LABORATORY" styleClass="subtitle-label"/>
                 </VBox>
                 <Separator orientation="VERTICAL" styleClass="header-separator"/>
-                <Label fx:id="serverStatusLabel" text="SERVER: OFFLINE" styleClass="status-label offline"/>
-                <Label fx:id="defenseStatusLabel" text="DEFENSE: OFF" styleClass="status-label offline"/>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label fx:id="serverStatusLabel" text="● SERVER: OFFLINE" styleClass="status-label offline"/>
+                    <Label fx:id="defenseStatusLabel" text="● DEFENSE: OFF" styleClass="status-label offline"/>
+                    <Label text="● DETECTION: ACTIVE" styleClass="status-label active"/>
+                </HBox>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="scenarioLabel" text="SCENARIO 1" styleClass="info-label"/>
                 <Label fx:id="runLabel" text="RUN: —" styleClass="info-label run-info"/>
@@ -32,129 +35,220 @@
 
     <center>
         <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="dashboard-scroll">
-            <VBox spacing="12" styleClass="main-content">
-                <padding><Insets top="14" right="20" bottom="16" left="20"/></padding>
+            <VBox spacing="10" styleClass="main-content">
+                <padding><Insets top="12" right="16" bottom="14" left="16"/></padding>
 
-                <HBox spacing="12" styleClass="intro-row">
-                    <VBox spacing="3" HBox.hgrow="ALWAYS">
-                        <Label text="Security experiment" styleClass="page-title"/>
-                        <Label text="Run the same controlled attack twice and compare the measured outcome." styleClass="page-description"/>
+                <HBox spacing="12" styleClass="workspace" VBox.vgrow="ALWAYS">
+                    <!-- LEFT: run context -->
+                    <VBox spacing="10" styleClass="left-column">
+                        <VBox spacing="0" styleClass="side-panel">
+                            <Label text="⌁  RUN CONTEXT" styleClass="side-heading"/>
+                            <Separator styleClass="panel-separator"/>
+                            <VBox spacing="4" styleClass="context-group">
+                                <Label text="SCENARIO" styleClass="context-label"/>
+                                <Label text="BRUTE FORCE / LOGIN" styleClass="context-value"/>
+                                <Label text="TARGET" styleClass="context-label"/>
+                                <Label text="auth-prod-01:22" styleClass="context-value mono"/>
+                                <Label text="ATTACK PROFILE" styleClass="context-label"/>
+                                <Label text="2000 ordered attempts" styleClass="context-value"/>
+                                <Label text="RUN ID" styleClass="context-label"/>
+                                <Label fx:id="runContextValue" text="— / CONTROLLED" styleClass="context-value mono"/>
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="0" styleClass="side-panel">
+                            <Label text="⌁  EXPERIMENT STATUS" styleClass="side-heading"/>
+                            <Separator styleClass="panel-separator"/>
+                            <VBox spacing="8" styleClass="status-stack">
+                                <VBox spacing="3" styleClass="status-block baseline-block">
+                                    <Label text="BASELINE / DEFENSE OFF" styleClass="status-block-title"/>
+                                    <HBox alignment="CENTER_LEFT">
+                                        <Label text="READY" styleClass="status-block-value"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Label text="01:48" styleClass="status-block-time"/>
+                                    </HBox>
+                                </VBox>
+                                <VBox spacing="3" styleClass="status-block protected-block">
+                                    <Label text="PROTECTED / DEFENSE ON" styleClass="status-block-title"/>
+                                    <HBox alignment="CENTER_LEFT">
+                                        <Label text="READY" styleClass="status-block-value"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Label text="02:12" styleClass="status-block-time"/>
+                                    </HBox>
+                                </VBox>
+                                <Label text="NO ACTIVE RUN" styleClass="inactive-note"/>
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="0" styleClass="side-panel telemetry-panel">
+                            <Label text="⌁  RUN TELEMETRY" styleClass="side-heading"/>
+                            <Separator styleClass="panel-separator"/>
+                            <VBox spacing="7" styleClass="telemetry-stack">
+                                <HBox><Label text="CURRENT RUN" styleClass="telemetry-label"/><Region HBox.hgrow="ALWAYS"/><Label text="0%" styleClass="telemetry-value"/></HBox>
+                                <Separator styleClass="tiny-separator"/>
+                                <HBox><Label text="ATTACK RATE" styleClass="telemetry-label"/><Region HBox.hgrow="ALWAYS"/><Label text="— req/s" styleClass="telemetry-value"/></HBox>
+                                <HBox><Label text="DETECTION LATENCY" styleClass="telemetry-label"/><Region HBox.hgrow="ALWAYS"/><Label text="— ms" styleClass="telemetry-value"/></HBox>
+                                <HBox><Label text="LOCKOUT STATUS" styleClass="telemetry-label"/><Region HBox.hgrow="ALWAYS"/><Label text="ARMED" styleClass="telemetry-green"/></HBox>
+                            </VBox>
+                        </VBox>
                     </VBox>
-                    <VBox spacing="2" alignment="CENTER_RIGHT" styleClass="run-note">
-                        <Label text="LOCAL ONLY" styleClass="run-note-title"/>
-                        <Label text="127.0.0.1 : 9090" styleClass="run-note-value"/>
+
+                    <!-- CENTER: experiment -->
+                    <VBox spacing="10" styleClass="center-column" HBox.hgrow="ALWAYS">
+                        <VBox spacing="3" styleClass="title-area">
+                            <HBox spacing="8" alignment="CENTER_LEFT">
+                                <Label text="LIVE TOPOLOGY / SCENARIO 1" styleClass="eyebrow-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="No active run" styleClass="run-state-label"/>
+                            </HBox>
+                            <Label text="Attack path and defensive response" styleClass="page-title"/>
+                            <Label text="STANDBY  •  READY FOR CONTROLLED EXPERIMENT" styleClass="page-state"/>
+                        </VBox>
+
+                        <VBox spacing="0" styleClass="topology-pane">
+                            <HBox spacing="8" alignment="CENTER_LEFT" styleClass="topology-header">
+                                <Label text="ϟ" styleClass="topology-icon"/>
+                                <Label text="ATTACK FLOW  •  CONTROLLED PATH" styleClass="section-title"/>
+                            </HBox>
+                            <Separator styleClass="panel-separator"/>
+                            <Label text="PACKET FLOW MONITORING  •  LIVE" styleClass="flow-caption"/>
+                            <HBox fx:id="topologyContent" spacing="9" alignment="CENTER" styleClass="topology-content">
+                                <VBox styleClass="node attacker-node" spacing="4" alignment="CENTER">
+                                    <Label text="ATTACKER" styleClass="node-title"/>
+                                    <Label text="10.14.8.23 / runner" styleClass="node-meta mono"/>
+                                </VBox>
+                                <Label text="→" styleClass="topology-arrow attacker-arrow"/>
+                                <Label text="LOGIN × 2000" styleClass="flow-label attack-flow-label"/>
+                                <Label text="→" styleClass="topology-arrow attacker-arrow"/>
+                                <VBox styleClass="node server-node" spacing="4" alignment="CENTER">
+                                    <Label text="▣  AUTHENTICATION SERVER" styleClass="node-title"/>
+                                    <Label text="auth-prod-01:22" styleClass="node-meta mono"/>
+                                </VBox>
+                                <Label text="→" styleClass="topology-arrow"/>
+                                <Label text="QUERY" styleClass="flow-label"/>
+                                <Label text="→" styleClass="topology-arrow"/>
+                                <VBox styleClass="node database-node" spacing="4" alignment="CENTER">
+                                    <Label text="▤  H2 DATABASE" styleClass="node-title"/>
+                                    <Label text="users / audit_log" styleClass="node-meta mono"/>
+                                </VBox>
+                            </HBox>
+                            <HBox alignment="CENTER" styleClass="defense-row">
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <VBox styleClass="defense-summary" spacing="3" alignment="CENTER">
+                                    <Label text="♙  ACCOUNT LOCKOUT / DEFENSE" styleClass="defense-title"/>
+                                    <Label text="900s policy  •  threshold 5" styleClass="node-meta mono"/>
+                                </VBox>
+                                <Region HBox.hgrow="ALWAYS"/>
+                            </HBox>
+                        </VBox>
+
+                        <HBox spacing="7" styleClass="metrics-row">
+                            <VBox fx:id="totalAttemptsCard" styleClass="metric-card" HBox.hgrow="ALWAYS">
+                                <Label text="TOTAL ATTEMPTS" styleClass="metric-title"/>
+                                <Label fx:id="totalAttemptsValue" text="0" styleClass="metric-value"/>
+                                <Label text="ordered sequence" styleClass="metric-note"/>
+                            </VBox>
+                            <VBox fx:id="failedCard" styleClass="metric-card warning" HBox.hgrow="ALWAYS">
+                                <Label text="FAILED" styleClass="metric-title"/>
+                                <Label fx:id="failedValue" text="0" styleClass="metric-value"/>
+                                <Label text="credential rejects" styleClass="metric-note"/>
+                            </VBox>
+                            <VBox fx:id="blockedCard" styleClass="metric-card blocked" HBox.hgrow="ALWAYS">
+                                <Label text="BLOCKED" styleClass="metric-title"/>
+                                <Label fx:id="blockedValue" text="0" styleClass="metric-value"/>
+                                <Label text="policy denied" styleClass="metric-note"/>
+                            </VBox>
+                            <VBox fx:id="successCard" styleClass="metric-card danger" HBox.hgrow="ALWAYS">
+                                <Label text="ATTACKER SUCCESS" styleClass="metric-title"/>
+                                <Label fx:id="successValue" text="0" styleClass="metric-value"/>
+                                <Label text="compromise events" styleClass="metric-note"/>
+                            </VBox>
+                            <VBox fx:id="alertsCard" styleClass="metric-card alert" HBox.hgrow="ALWAYS">
+                                <Label text="ALERTS" styleClass="metric-title"/>
+                                <Label fx:id="alertsValue" text="0" styleClass="metric-value"/>
+                                <Label text="thresholds" styleClass="metric-note"/>
+                            </VBox>
+                            <VBox fx:id="legitSuccessCard" styleClass="metric-card success" HBox.hgrow="ALWAYS">
+                                <Label text="LEGITIMATE SUCCESS" styleClass="metric-title"/>
+                                <Label fx:id="legitSuccessValue" text="0" styleClass="metric-value"/>
+                                <Label text="analyst test" styleClass="metric-note"/>
+                            </VBox>
+                        </HBox>
+
+                        <VBox spacing="0" styleClass="events-pane" VBox.vgrow="ALWAYS">
+                            <HBox alignment="CENTER_LEFT" spacing="8" styleClass="events-header">
+                                <Label text="●" styleClass="stream-dot"/>
+                                <Label text="LIVE EVENT STREAM" styleClass="section-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="STREAMING" styleClass="stream-status"/>
+                            </HBox>
+                            <ScrollPane fx:id="eventsScrollPane" styleClass="events-scroll" fitToWidth="true" VBox.vgrow="ALWAYS" prefHeight="170">
+                                <TextArea fx:id="eventsTextArea" editable="false" wrapText="false" styleClass="events-textarea"/>
+                            </ScrollPane>
+                        </VBox>
+
+                        <VBox spacing="7" styleClass="control-pane">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="▷  EXPERIMENT CONTROL" styleClass="section-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label text="STEP BY STEP" styleClass="section-badge"/>
+                            </HBox>
+                            <HBox spacing="7" alignment="CENTER_LEFT">
+                                <Label text="Run the baseline first, then enable the lockout defense and repeat the attack." styleClass="control-help" HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="startBaselineBtn" text="▷  START BASELINE" styleClass="btn-primary" onAction="#handleStartBaseline"/>
+                                <Button fx:id="runAttackBtn" text="ϟ  RUN ATTACK" styleClass="btn-danger" onAction="#handleRunAttack" disable="true"/>
+                                <Button fx:id="enableDefenseBtn" text="♢  ENABLE DEFENSE" styleClass="btn-warning" onAction="#handleEnableDefense" disable="true"/>
+                                <Button fx:id="runProtectedAttackBtn" text="♙  RUN PROTECTED ATTACK" styleClass="btn-success" onAction="#handleRunProtectedAttack" disable="true"/>
+                            </HBox>
+                            <HBox spacing="7" alignment="CENTER_LEFT">
+                                <Button fx:id="compareBtn" text="COMPARE RUNS" styleClass="btn-info" onAction="#handleCompare" disable="true"/>
+                                <Button fx:id="replayBtn" text="VIEW REPLAY" styleClass="btn-info" onAction="#handleReplay" disable="true"/>
+                                <Button fx:id="exportBtn" text="EXPORT REPORT" styleClass="btn-secondary" onAction="#handleExport" disable="true"/>
+                                <Button fx:id="resetBtn" text="RESET" styleClass="btn-secondary" onAction="#handleReset"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <!-- RIGHT: verdict -->
+                    <VBox spacing="10" styleClass="right-column">
+                        <VBox spacing="8" styleClass="verdict-panel baseline-verdict">
+                            <Label text="●  BASELINE / DEFENSE OFF" styleClass="verdict-heading baseline-text"/>
+                            <Label text="ACCOUNT COMPROMISED" styleClass="verdict-title danger-text"/>
+                            <Label text="Defense disabled. Valid credentials eventually succeed." styleClass="verdict-description" wrapText="true"/>
+                            <Separator styleClass="panel-separator"/>
+                            <Label text="SUCCESS ON ATTACKER LOGIN" styleClass="verdict-detail"/>
+                        </VBox>
+
+                        <VBox spacing="8" styleClass="verdict-panel protected-verdict">
+                            <Label text="✓  PROTECTED / DEFENSE ON" styleClass="verdict-heading protected-text"/>
+                            <Label text="ATTACK BLOCKED" styleClass="verdict-title protected-text"/>
+                            <Label text="Repeated failures trigger account lockout and stop the attack." styleClass="verdict-description" wrapText="true"/>
+                            <Separator styleClass="panel-separator"/>
+                            <Label text="REMAINING ATTEMPTS DENIED" styleClass="verdict-detail"/>
+                        </VBox>
+
+                        <VBox spacing="8" styleClass="effectiveness-panel">
+                            <Label text="♢  DEFENSE EFFECTIVENESS" styleClass="verdict-heading"/>
+                            <Label text="100" styleClass="effectiveness-value"/>
+                            <Label text="%" styleClass="effectiveness-percent"/>
+                            <Region minHeight="3" styleClass="effectiveness-bar"/>
+                            <Label text="Protected outcome vs. baseline" styleClass="verdict-description"/>
+                            <Label text="COMPROMISE REDUCTION  •  1 → 0" styleClass="verdict-detail"/>
+                        </VBox>
+
+                        <VBox spacing="8" styleClass="notes-panel">
+                            <Label text="♧  DETECTION NOTES" styleClass="verdict-heading"/>
+                            <Label text="threshold: 5 failures / 60s\nlockout: 900 seconds\ntelemetry: local event bus" styleClass="notes-text" wrapText="true"/>
+                        </VBox>
                     </VBox>
                 </HBox>
-
-                <VBox spacing="9" styleClass="panel topology-pane">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label text="ATTACK PATH" styleClass="section-title"/>
-                        <Label text="SCENARIO 1" styleClass="section-badge"/>
-                    </HBox>
-                    <HBox fx:id="topologyContent" spacing="10" alignment="CENTER" styleClass="topology-content">
-                        <VBox styleClass="node attacker-node" spacing="4" alignment="CENTER">
-                            <Label text="ATTACKER" styleClass="node-title"/>
-                            <Label text="2000 ordered requests" styleClass="node-meta"/>
-                        </VBox>
-                        <Label text="→" styleClass="topology-arrow"/>
-                        <VBox styleClass="node server-node" spacing="4" alignment="CENTER">
-                            <Label text="AUTHENTICATION SERVER" styleClass="node-title"/>
-                            <Label text="127.0.0.1:9090" styleClass="node-meta"/>
-                        </VBox>
-                        <Label text="→" styleClass="topology-arrow"/>
-                        <VBox styleClass="node database-node" spacing="4" alignment="CENTER">
-                            <Label text="H2 DATABASE" styleClass="node-title"/>
-                            <Label text="events and run metrics" styleClass="node-meta"/>
-                        </VBox>
-                        <VBox styleClass="defense-summary" spacing="3" alignment="CENTER">
-                            <Label text="ACCOUNT LOCKOUT" styleClass="defense-title"/>
-                            <Label text="5 failed logins" styleClass="node-meta"/>
-                            <Label text="defense threshold" styleClass="node-meta"/>
-                        </VBox>
-                    </HBox>
-                </VBox>
-
-                <VBox spacing="9" styleClass="panel">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label text="RUN RESULTS" styleClass="section-title"/>
-                        <Label text="CURRENT RUN" styleClass="section-badge"/>
-                    </HBox>
-                    <HBox spacing="9" styleClass="metrics-row">
-                        <VBox fx:id="totalAttemptsCard" styleClass="metric-card" HBox.hgrow="ALWAYS">
-                            <Label text="TOTAL ATTEMPTS" styleClass="metric-title"/>
-                            <Label fx:id="totalAttemptsValue" text="0" styleClass="metric-value"/>
-                        </VBox>
-                        <VBox fx:id="failedCard" styleClass="metric-card warning" HBox.hgrow="ALWAYS">
-                            <Label text="FAILED" styleClass="metric-title"/>
-                            <Label fx:id="failedValue" text="0" styleClass="metric-value"/>
-                        </VBox>
-                        <VBox fx:id="blockedCard" styleClass="metric-card blocked" HBox.hgrow="ALWAYS">
-                            <Label text="BLOCKED" styleClass="metric-title"/>
-                            <Label fx:id="blockedValue" text="0" styleClass="metric-value"/>
-                        </VBox>
-                        <VBox fx:id="successCard" styleClass="metric-card danger" HBox.hgrow="ALWAYS">
-                            <Label text="ATTACK SUCCESS" styleClass="metric-title"/>
-                            <Label fx:id="successValue" text="0" styleClass="metric-value"/>
-                        </VBox>
-                        <VBox fx:id="alertsCard" styleClass="metric-card alert" HBox.hgrow="ALWAYS">
-                            <Label text="ALERTS" styleClass="metric-title"/>
-                            <Label fx:id="alertsValue" text="0" styleClass="metric-value"/>
-                        </VBox>
-                        <VBox fx:id="legitSuccessCard" styleClass="metric-card success" HBox.hgrow="ALWAYS">
-                            <Label text="LEGIT SUCCESS" styleClass="metric-title"/>
-                            <Label fx:id="legitSuccessValue" text="0" styleClass="metric-value"/>
-                        </VBox>
-                    </HBox>
-                </VBox>
-
-                <HBox spacing="12" styleClass="lower-row">
-                    <VBox spacing="9" styleClass="panel control-pane" HBox.hgrow="ALWAYS">
-                        <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label text="EXPERIMENT CONTROL" styleClass="section-title"/>
-                            <Label text="STEP BY STEP" styleClass="section-badge"/>
-                        </HBox>
-                        <Label text="Start with the baseline, then enable the lockout defense and repeat the attack." styleClass="control-help" wrapText="true"/>
-                        <HBox spacing="7" alignment="CENTER_LEFT">
-                            <Button fx:id="startBaselineBtn" text="START BASELINE" styleClass="btn-primary" onAction="#handleStartBaseline"/>
-                            <Button fx:id="runAttackBtn" text="RUN ATTACK" styleClass="btn-danger" onAction="#handleRunAttack" disable="true"/>
-                            <Button fx:id="enableDefenseBtn" text="ENABLE DEFENSE" styleClass="btn-warning" onAction="#handleEnableDefense" disable="true"/>
-                            <Button fx:id="runProtectedAttackBtn" text="RUN PROTECTED ATTACK" styleClass="btn-success" onAction="#handleRunProtectedAttack" disable="true"/>
-                        </HBox>
-                        <HBox spacing="7" alignment="CENTER_LEFT">
-                            <Button fx:id="compareBtn" text="COMPARE RUNS" styleClass="btn-info" onAction="#handleCompare" disable="true"/>
-                            <Button fx:id="replayBtn" text="VIEW REPLAY" styleClass="btn-info" onAction="#handleReplay" disable="true"/>
-                            <Button fx:id="exportBtn" text="EXPORT REPORT" styleClass="btn-secondary" onAction="#handleExport" disable="true"/>
-                            <Button fx:id="resetBtn" text="RESET" styleClass="btn-secondary" onAction="#handleReset"/>
-                        </HBox>
-                    </VBox>
-
-                    <VBox spacing="8" styleClass="panel summary-pane">
-                        <Label text="WHAT THIS RUN SHOWS" styleClass="section-title"/>
-                        <Label text="Baseline" styleClass="summary-label baseline"/>
-                        <Label text="Attack succeeds when protection is off." styleClass="summary-text" wrapText="true"/>
-                        <Label text="Protected" styleClass="summary-label protected"/>
-                        <Label text="Repeated failures trigger account lockout and stop the attack." styleClass="summary-text" wrapText="true"/>
-                    </VBox>
-                </HBox>
-
-                <VBox spacing="8" styleClass="panel events-pane">
-                    <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label text="EVENT LOG" styleClass="section-title"/>
-                        <Label text="LIVE" styleClass="section-badge"/>
-                        <Region HBox.hgrow="ALWAYS"/>
-                        <Label text="Canonical security events" styleClass="events-caption"/>
-                    </HBox>
-                    <ScrollPane fx:id="eventsScrollPane" styleClass="events-scroll" fitToWidth="true" prefHeight="220">
-                        <TextArea fx:id="eventsTextArea" editable="false" wrapText="true" styleClass="events-textarea"/>
-                    </ScrollPane>
-                </VBox>
             </VBox>
         </ScrollPane>
     </center>
 
     <bottom>
         <HBox styleClass="footer-pane" alignment="CENTER_LEFT">
-            <padding><Insets top="7" right="20" bottom="7" left="20"/></padding>
+            <padding><Insets top="6" right="16" bottom="6" left="16"/></padding>
             <Label fx:id="footerLabel" text="ANVEX v1.0  •  Educational Cybersecurity Laboratory  •  Traffic restricted to 127.0.0.1" styleClass="footer-label"/>
         </HBox>
     </bottom>
