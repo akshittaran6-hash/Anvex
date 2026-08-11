@@ -37,9 +37,7 @@
         <ScrollPane fitToWidth="true" fitToHeight="true" styleClass="dashboard-scroll">
             <VBox spacing="10" styleClass="main-content">
                 <padding><Insets top="12" right="16" bottom="14" left="16"/></padding>
-
                 <HBox spacing="12" styleClass="workspace" VBox.vgrow="ALWAYS">
-                    <!-- LEFT: run context -->
                     <VBox spacing="10" styleClass="left-column">
                         <VBox spacing="0" styleClass="side-panel">
                             <Label text="⌁  RUN CONTEXT" styleClass="side-heading"/>
@@ -55,7 +53,6 @@
                                 <Label fx:id="runContextValue" text="— / CONTROLLED" styleClass="context-value mono"/>
                             </VBox>
                         </VBox>
-
                         <VBox spacing="0" styleClass="side-panel">
                             <Label text="⌁  EXPERIMENT STATUS" styleClass="side-heading"/>
                             <Separator styleClass="panel-separator"/>
@@ -79,7 +76,6 @@
                                 <Label text="NO ACTIVE RUN" styleClass="inactive-note"/>
                             </VBox>
                         </VBox>
-
                         <VBox spacing="0" styleClass="side-panel telemetry-panel">
                             <Label text="⌁  RUN TELEMETRY" styleClass="side-heading"/>
                             <Separator styleClass="panel-separator"/>
@@ -92,8 +88,6 @@
                             </VBox>
                         </VBox>
                     </VBox>
-
-                    <!-- CENTER: experiment -->
                     <VBox spacing="10" styleClass="center-column" HBox.hgrow="ALWAYS">
                         <VBox spacing="3" styleClass="title-area">
                             <HBox spacing="8" alignment="CENTER_LEFT">
@@ -104,7 +98,6 @@
                             <Label text="Attack path and defensive response" styleClass="page-title"/>
                             <Label text="STANDBY  •  READY FOR CONTROLLED EXPERIMENT" styleClass="page-state"/>
                         </VBox>
-
                         <VBox spacing="0" styleClass="topology-pane">
                             <HBox spacing="8" alignment="CENTER_LEFT" styleClass="topology-header">
                                 <Label text="ϟ" styleClass="topology-icon"/>
@@ -141,7 +134,6 @@
                                 <Region HBox.hgrow="ALWAYS"/>
                             </HBox>
                         </VBox>
-
                         <HBox spacing="7" styleClass="metrics-row">
                             <VBox fx:id="totalAttemptsCard" styleClass="metric-card" HBox.hgrow="ALWAYS">
                                 <Label text="TOTAL ATTEMPTS" styleClass="metric-title"/>
@@ -174,7 +166,6 @@
                                 <Label text="analyst test" styleClass="metric-note"/>
                             </VBox>
                         </HBox>
-
                         <VBox spacing="0" styleClass="events-pane" VBox.vgrow="ALWAYS">
                             <HBox alignment="CENTER_LEFT" spacing="8" styleClass="events-header">
                                 <Label text="●" styleClass="stream-dot"/>
@@ -186,7 +177,6 @@
                                 <TextArea fx:id="eventsTextArea" editable="false" wrapText="false" styleClass="events-textarea"/>
                             </ScrollPane>
                         </VBox>
-
                         <VBox spacing="7" styleClass="control-pane">
                             <HBox alignment="CENTER_LEFT" spacing="8">
                                 <Label text="▷  EXPERIMENT CONTROL" styleClass="section-title"/>
@@ -208,8 +198,6 @@
                             </HBox>
                         </VBox>
                     </VBox>
-
-                    <!-- RIGHT: verdict -->
                     <VBox spacing="10" styleClass="right-column">
                         <VBox spacing="8" styleClass="verdict-panel baseline-verdict">
                             <Label text="●  BASELINE / DEFENSE OFF" styleClass="verdict-heading baseline-text"/>
@@ -218,7 +206,6 @@
                             <Separator styleClass="panel-separator"/>
                             <Label text="SUCCESS ON ATTACKER LOGIN" styleClass="verdict-detail"/>
                         </VBox>
-
                         <VBox spacing="8" styleClass="verdict-panel protected-verdict">
                             <Label text="✓  PROTECTED / DEFENSE ON" styleClass="verdict-heading protected-text"/>
                             <Label text="ATTACK BLOCKED" styleClass="verdict-title protected-text"/>
@@ -226,16 +213,13 @@
                             <Separator styleClass="panel-separator"/>
                             <Label text="REMAINING ATTEMPTS DENIED" styleClass="verdict-detail"/>
                         </VBox>
-
                         <VBox spacing="8" styleClass="effectiveness-panel">
                             <Label text="♢  DEFENSE EFFECTIVENESS" styleClass="verdict-heading"/>
-                            <Label text="100" styleClass="effectiveness-value"/>
-                            <Label text="%" styleClass="effectiveness-percent"/>
+                            <Label text="100%" styleClass="effectiveness-value"/>
                             <Region minHeight="3" styleClass="effectiveness-bar"/>
                             <Label text="Protected outcome vs. baseline" styleClass="verdict-description"/>
                             <Label text="COMPROMISE REDUCTION  •  1 → 0" styleClass="verdict-detail"/>
                         </VBox>
-
                         <VBox spacing="8" styleClass="notes-panel">
                             <Label text="♧  DETECTION NOTES" styleClass="verdict-heading"/>
                             <Label text="threshold: 5 failures / 60s\nlockout: 900 seconds\ntelemetry: local event bus" styleClass="notes-text" wrapText="true"/>
@@ -245,7 +229,6 @@
             </VBox>
         </ScrollPane>
     </center>
-
     <bottom>
         <HBox styleClass="footer-pane" alignment="CENTER_LEFT">
             <padding><Insets top="6" right="16" bottom="6" left="16"/></padding>
