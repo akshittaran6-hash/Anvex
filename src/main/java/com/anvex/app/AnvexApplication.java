@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class AnvexApplication extends Application {
     private static final Logger logger = LoggerFactory.getLogger(AnvexApplication.class);
@@ -41,7 +42,13 @@ public class AnvexApplication extends Application {
 
     private void startNetworkLab() throws IOException {
         DatabaseManager db = DatabaseManager.getInstance();
-        db.initialize();
+
+        try {
+            db.initialize();
+        } catch (SQLException e) {
+            logger.error("Failed to initialize the ANVEX network-lab database", e);
+            throw new IOException("Failed to initialize the ANVEX database", e);
+        }
 
         UserRepository users = new UserRepository(db);
         if (users.findByUsername(AppConfig.NETWORK_LAB_TARGET_USERNAME).isEmpty()) {
