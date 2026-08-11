@@ -18,7 +18,6 @@ import java.util.UUID;
 
 public final class RequestHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
-
     private final Socket socket;
     private final UserRepository userRepository;
     private final EventBus eventBus;
@@ -40,10 +39,12 @@ public final class RequestHandler implements Runnable {
 
     @Override
     public void run() {
+        String remoteAddress = socket.getInetAddress() == null
+                ? "unknown" : socket.getInetAddress().getHostAddress();
+
         try (socket;
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-
             String request = in.readLine();
             if (request == null || request.isBlank()) {
                 out.println("ERROR|EMPTY_REQUEST");
@@ -65,40 +66,40 @@ public final class RequestHandler implements Runnable {
             }
 
             AuthenticationDecision decision = defenseEngine.authenticate(
-                    username,
-                    () -> userRepository.verifyCredentials(username, password));
+                    username, () -> userRepository.verifyCredentials(username, password));
+            String observedClient = "LAB_REMOTE".equals(clientType)
+                    ? "LAB_REMOTE@" + remoteAddress : clientType;
 
             if (decision == AuthenticationDecision.BLOCKED) {
-                publishEvent(SecurityEventType.LOGIN_BLOCKED, username, clientType,
-                        "AUTHENTICATION_SERVER", "BLOCKED", "Login blocked: account is locked");
+                publishEvent(SecurityEventType.LOGIN_BLOCKED, username, observedClient,
+                        remoteAddress, "BLOCKED", "Login blocked: account is locked");
                 out.println("BLOCKED");
                 return;
             }
 
             if (decision == AuthenticationDecision.SUCCESS) {
-                publishEvent(SecurityEventType.LOGIN_SUCCESS, username, clientType,
-                        "AUTHENTICATION_SERVER", "SUCCESS", "Login successful");
+                publishEvent(SecurityEventType.LOGIN_SUCCESS, username, observedClient,
+                        remoteAddress, "SUCCESS", "Login successful");
                 out.println("SUCCESS");
                 return;
             }
 
-            publishEvent(SecurityEventType.LOGIN_FAILURE, username, clientType,
-                    "AUTHENTICATION_SERVER", "FAILURE", "Invalid credentials");
+            publishEvent(SecurityEventType.LOGIN_FAILURE, username, observedClient,
+                    remoteAddress, "FAILURE", "Invalid credentials");
 
             if (defenseEngine.isBlocked(username)) {
-                publishEvent(SecurityEventType.ACCOUNT_LOCKED, username, clientType,
-                        "ACCOUNT_LOCKOUT_DEFENSE", "LOCKED", "Account locked after repeated failed logins");
+                publishEvent(SecurityEventType.ACCOUNT_LOCKED, username, observedClient,
+                        remoteAddress, "LOCKED", "Account locked after repeated failed logins");
             }
-
             out.println("FAILURE");
         } catch (IOException e) {
-            logger.debug("Client connection closed: {}", e.getMessage());
+            logger.debug("Client connection closed from {}: {}", remoteAddress, e.getMessage());
         }
     }
 
     private void publishEvent(SecurityEventType type, String username, String clientType,
                               String source, String outcome, String message) {
-        SecurityEvent event = SecurityEvent.builder()
+        eventBus.publish(SecurityEvent.builder()
                 .eventId(UUID.randomUUID().toString())
                 .runId(runId)
                 .eventType(type)
@@ -107,7 +108,6 @@ public final class RequestHandler implements Runnable {
                 .source(source)
                 .outcome(outcome)
                 .message(message)
-                .build();
-        eventBus.publish(event);
+                .build());
     }
 }
