@@ -1,10 +1,17 @@
 package com.anvex;
 
+import com.anvex.detection.DetectionConfig;
+import com.anvex.detection.DetectionEngine;
+import com.anvex.detection.SourceActivityTracker;
 import com.anvex.event.EventBus;
+import com.anvex.event.SecurityEvent;
 import com.anvex.persistence.DatabaseManager;
 import com.anvex.persistence.UserRepository;
+import com.anvex.protection.ProtectionConfig;
+import com.anvex.protection.ProtectionEngine;
 import com.anvex.server.AuthenticationServer;
 import com.anvex.util.AppConfig;
+import com.anvex.util.PasswordUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -14,6 +21,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +41,7 @@ class AuthenticationServerTest {
     private static ExecutorService clientPool;
 
     @BeforeAll
-    static void setUp() throws IOException, InterruptedException {
+    static void setUp() throws IOException, InterruptedException, SQLException {
         DatabaseManager.resetInstance();
         dbManager = DatabaseManager.getTestInstance();
         dbManager.initialize();
@@ -42,8 +52,11 @@ class AuthenticationServerTest {
         // Insert test users
         insertTestUsers();
         
-        // Start server
-        server = new AuthenticationServer(dbManager, eventBus);
+        // Start server with an unsubscribed protection engine (always ALLOW)
+        DetectionEngine detectionEngine = new DetectionEngine(
+                new DetectionConfig(), new SourceActivityTracker(), eventBus);
+        server = new AuthenticationServer(dbManager, eventBus,
+                new ProtectionEngine(detectionEngine, new ProtectionConfig(), eventBus));
         server.start();
         
         // Wait for server to be ready
@@ -60,9 +73,9 @@ class AuthenticationServerTest {
     }
 
     private static void insertTestUsers() {
-        userRepository.createUser("test_user", "password123", "LEGITIMATE");
-        userRepository.createUser("target_user", "targetpass", "TARGET");
-        userRepository.createUser("attacker_target", "wrongpass", "TARGET");
+        userRepository.createUser("test_user", PasswordUtil.hashPassword("password123"), "LEGITIMATE");
+        userRepository.createUser("target_user", PasswordUtil.hashPassword("targetpass"), "TARGET");
+        userRepository.createUser("attacker_target", PasswordUtil.hashPassword("wrongpass"), "TARGET");
     }
 
     @Test
@@ -107,6 +120,9 @@ class AuthenticationServerTest {
                     }
                 } catch (IOException e) {
                     failureCount.incrementAndGet();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    failureCount.incrementAndGet();
                 } finally {
                     latch.countDown();
                 }
@@ -130,9 +146,48 @@ class AuthenticationServerTest {
         assertTrue(response.startsWith("ERROR"));
     }
 
-    private String sendLoginRequest(String username, String password, String clientType) 
+    @Test
+    void sourceIdFromProtocolUsedInEvents() throws Exception {
+        userRepository.createUser("source_test_a", PasswordUtil.hashPassword("pass123"), "LEGITIMATE");
+        List<SecurityEvent> captured = new CopyOnWriteArrayList<>();
+        eventBus.subscribe(captured::add);
+
+        String response = sendLoginRequest("source_test_a", "pass123", "LEGITIMATE", "192.168.1.50");
+        assertEquals("SUCCESS", response);
+        assertTrue(eventBus.awaitIdle(2000), "Event should be processed");
+
+        SecurityEvent event = captured.stream()
+                .filter(e -> "source_test_a".equals(e.getUsername()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No event captured for source_test_a"));
+        assertEquals("192.168.1.50", event.getSource());
+    }
+
+    @Test
+    void missingSourceIdFallsBackToSocketAddress() throws Exception {
+        userRepository.createUser("source_test_b", PasswordUtil.hashPassword("pass456"), "LEGITIMATE");
+        List<SecurityEvent> captured = new CopyOnWriteArrayList<>();
+        eventBus.subscribe(captured::add);
+
+        String response = sendLoginRequest("source_test_b", "pass456", "LEGITIMATE");
+        assertEquals("SUCCESS", response);
+        assertTrue(eventBus.awaitIdle(2000), "Event should be processed");
+
+        SecurityEvent event = captured.stream()
+                .filter(e -> "source_test_b".equals(e.getUsername()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("No event captured for source_test_b"));
+        assertEquals(AppConfig.SERVER_HOST, event.getSource());
+    }
+
+    private String sendLoginRequest(String username, String password, String clientType)
             throws IOException, InterruptedException {
         return sendRawRequest("LOGIN|" + username + "|" + password + "|" + clientType);
+    }
+
+    private String sendLoginRequest(String username, String password, String clientType, String sourceId)
+            throws IOException, InterruptedException {
+        return sendRawRequest("LOGIN|" + username + "|" + password + "|" + clientType + "|" + sourceId);
     }
 
     private String sendRawRequest(String request) throws IOException, InterruptedException {

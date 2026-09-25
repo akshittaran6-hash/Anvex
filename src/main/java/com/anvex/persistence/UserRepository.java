@@ -34,6 +34,7 @@ public final class UserRepository {
             }
         } catch (SQLException e) {
             logger.error("Error finding user by username: {}", username, e);
+            throw new IllegalStateException("User database unavailable", e);
         }
         return Optional.empty();
     }

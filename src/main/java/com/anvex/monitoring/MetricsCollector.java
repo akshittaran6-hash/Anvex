@@ -30,7 +30,7 @@ public final class MetricsCollector {
         String outcome = event.getOutcome();
 
         switch (type) {
-            case ATTACK_STARTED -> runStartTime.set(System.currentTimeMillis());
+            case ATTACK_STARTED, RUN_STARTED -> runStartTime.set(event.getTimestamp().toEpochMilli());
             case ATTACK_COMPLETED -> runEndTime.set(System.currentTimeMillis());
             case LOGIN_SUCCESS -> {
                 if ("ATTACKER".equals(clientType)) {
@@ -54,7 +54,7 @@ public final class MetricsCollector {
                     attackerBlocked.incrementAndGet();
                 }
             }
-            case ALERT_TRIGGERED -> alertCount.incrementAndGet();
+            case ALERT_TRIGGERED, SECURITY_INCIDENT -> alertCount.incrementAndGet();
             case ACCOUNT_LOCKED -> accountLocked.set(1);
             case RUN_COMPLETED -> runEndTime.set(System.currentTimeMillis());
         }
@@ -78,7 +78,8 @@ public final class MetricsCollector {
                 alertCount.get(),
                 accountCompromised.get() == 1,
                 accountLocked.get() == 1,
-                runEndTime.get() - runStartTime.get()
+                runStartTime.get() == 0 ? 0 : Math.max(0,
+                        (runEndTime.get() == 0 ? System.currentTimeMillis() : runEndTime.get()) - runStartTime.get())
         );
     }
 

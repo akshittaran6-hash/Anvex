@@ -8,8 +8,11 @@ public final class AppConfig {
     private static final Logger logger = LoggerFactory.getLogger(AppConfig.class);
     private static boolean initialized = false;
 
-    public static final String SERVER_HOST = "127.0.0.1";
+    public static final String SERVER_HOST = System.getProperty("anvex.host",
+            System.getenv().getOrDefault("ANVEX_HOST", "127.0.0.1"));
     public static final int SERVER_PORT = 9090;
+    public static final int API_PORT = Integer.parseInt(System.getProperty("anvex.apiPort",
+            System.getenv().getOrDefault("ANVEX_API_PORT", "9091")));
     public static final int SERVER_HANDLER_POOL_SIZE = 24;
     public static final int ATTACKER_WORKER_POOL_SIZE = 8;
     public static final int ATTACK_SIZE = 2000;

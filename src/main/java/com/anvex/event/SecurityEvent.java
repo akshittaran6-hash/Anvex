@@ -2,6 +2,7 @@ package com.anvex.event;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 public final class SecurityEvent {
 
@@ -16,6 +17,9 @@ public final class SecurityEvent {
     private final String outcome;
     private final String message;
     private final Map<String, String> metadata;
+    private final ThreatLevel threatLevel;
+    private final Integer threatScore;
+    private final Evidence evidence;
 
     private SecurityEvent(Builder builder) {
         this.sequenceNumber = builder.sequenceNumber;
@@ -28,7 +32,10 @@ public final class SecurityEvent {
         this.source = builder.source;
         this.outcome = builder.outcome;
         this.message = builder.message;
-        this.metadata = builder.metadata;
+        this.metadata = builder.metadata == null ? Map.of() : Map.copyOf(builder.metadata);
+        this.threatLevel = builder.threatLevel;
+        this.threatScore = builder.threatScore;
+        this.evidence = builder.evidence;
     }
 
     public long getSequenceNumber() { return sequenceNumber; }
@@ -42,6 +49,9 @@ public final class SecurityEvent {
     public String getOutcome() { return outcome; }
     public String getMessage() { return message; }
     public Map<String, String> getMetadata() { return metadata; }
+    public ThreatLevel getThreatLevel() { return threatLevel; }
+    public Integer getThreatScore() { return threatScore; }
+    public Evidence getEvidence() { return evidence; }
 
     public static Builder builder() {
         return new Builder();
@@ -49,7 +59,7 @@ public final class SecurityEvent {
 
     public static final class Builder {
         private long sequenceNumber;
-        private String eventId;
+        private String eventId = UUID.randomUUID().toString();
         private long runId;
         private Instant timestamp = Instant.now();
         private SecurityEventType eventType;
@@ -59,6 +69,9 @@ public final class SecurityEvent {
         private String outcome;
         private String message;
         private Map<String, String> metadata;
+        private ThreatLevel threatLevel;
+        private Integer threatScore;
+        private Evidence evidence;
 
         public Builder sequenceNumber(long sequenceNumber) {
             this.sequenceNumber = sequenceNumber;
@@ -104,6 +117,19 @@ public final class SecurityEvent {
             this.metadata = metadata;
             return this;
         }
+        public Builder threatLevel(ThreatLevel threatLevel) {
+            this.threatLevel = threatLevel;
+            return this;
+        }
+
+        public Builder threatScore(Integer threatScore) {
+            this.threatScore = threatScore;
+            return this;
+        }
+        public Builder evidence(Evidence evidence) {
+            this.evidence = evidence;
+            return this;
+        }
         public SecurityEvent build() {
             return new SecurityEvent(this);
         }
@@ -111,7 +137,8 @@ public final class SecurityEvent {
 
     @Override
     public String toString() {
-        return String.format("[%d] %s | %s | user=%s | type=%s | outcome=%s | %s",
-                sequenceNumber, timestamp, eventType, username, clientType, outcome, message);
+        String threatInfo = threatLevel != null ? " | threat=" + threatLevel : "";
+        return String.format("[%d] %s | %s | user=%s | type=%s | outcome=%s%s | %s",
+                sequenceNumber, timestamp, eventType, username, clientType, outcome, threatInfo, message);
     }
 }
