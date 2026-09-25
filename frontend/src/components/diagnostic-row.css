@@ -1,0 +1,35 @@
+.diagnostic-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(22, 35, 63, 0.5);
+}
+
+.diagnostic-row:last-child {
+  border-bottom: none;
+}
+
+.diagnostic-label {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.diagnostic-value {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  word-break: break-all;
+}
+
+.accent-green { color: var(--green); }
+.accent-cyan { color: var(--cyan); }
+.accent-red { color: var(--red); }
+.accent-orange { color: var(--orange); }
+.accent-muted { color: var(--text-muted); }

@@ -1,0 +1,100 @@
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 3px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+
+.status-pill .status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.status-on {
+  color: var(--green);
+  border-color: rgba(46, 227, 138, 0.4);
+  background: rgba(46, 227, 138, 0.08);
+}
+
+.status-on .status-dot { background: var(--green); }
+
+.status-off {
+  color: var(--text-dim);
+  border-color: var(--border-strong);
+  background: rgba(70, 88, 124, 0.08);
+}
+
+.status-off .status-dot { background: var(--text-dim); }
+
+.threat-badge {
+  display: inline-block;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 3px 10px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+
+.level-normal {
+  color: var(--cyan);
+  border-color: rgba(79, 216, 255, 0.4);
+  background: rgba(79, 216, 255, 0.07);
+}
+
+.level-suspicious {
+  color: var(--amber);
+  border-color: rgba(255, 179, 71, 0.45);
+  background: rgba(255, 179, 71, 0.08);
+}
+
+.level-high {
+  color: var(--orange);
+  border-color: rgba(255, 122, 61, 0.5);
+  background: rgba(255, 122, 61, 0.09);
+}
+
+.level-critical {
+  color: var(--red);
+  border-color: rgba(255, 77, 94, 0.55);
+  background: rgba(255, 77, 94, 0.1);
+}
+
+.connection-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.connection-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.connection-up { color: var(--green); }
+.connection-up .connection-dot { background: var(--green); box-shadow: 0 0 6px rgba(46, 227, 138, 0.7); }
+
+.connection-down { color: var(--red); }
+.connection-down .connection-dot { background: var(--red); }
+
+.connection-dot.pulse {
+  animation: connection-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes connection-pulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(46, 227, 138, 0.5); }
+  50% { box-shadow: 0 0 9px rgba(46, 227, 138, 0.95); }
+}

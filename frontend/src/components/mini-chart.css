@@ -1,0 +1,21 @@
+.mini-chart {
+  display: block;
+}
+
+.chart-blue polyline,
+.chart-blue circle {
+  stroke: var(--cyan);
+  fill: var(--cyan);
+}
+
+.chart-red polyline,
+.chart-red circle {
+  stroke: var(--red);
+  fill: var(--red);
+}
+
+.chart-green polyline,
+.chart-green circle {
+  stroke: var(--green);
+  fill: var(--green);
+}

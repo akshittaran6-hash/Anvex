@@ -1,0 +1,20 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.app-main {
+  flex: 1;
+  min-height: 0;
+  padding: 16px 20px 20px;
+  overflow: auto;
+}
+
+.lab-grid,
+.dashboard-grid {
+  display: grid;
+  gap: 14px;
+}

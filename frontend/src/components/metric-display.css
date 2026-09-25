@@ -1,0 +1,31 @@
+.metric-display {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.metric-value {
+  font-family: var(--font-data);
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.metric-md .metric-value { font-size: 26px; }
+.metric-lg .metric-value { font-size: 40px; }
+.metric-sm .metric-value { font-size: 18px; }
+
+.metric-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.metric-blue .metric-value { color: var(--blue-bright); }
+.metric-cyan .metric-value { color: var(--cyan); }
+.metric-green .metric-value { color: var(--green); }
+.metric-orange .metric-value { color: var(--orange); }
+.metric-red .metric-value { color: var(--red); }
