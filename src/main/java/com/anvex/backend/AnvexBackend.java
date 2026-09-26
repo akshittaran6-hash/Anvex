@@ -11,6 +11,7 @@ import com.anvex.persistence.UserRepository;
 import com.anvex.protection.ProtectionConfig;
 import com.anvex.protection.ProtectionEngine;
 import com.anvex.server.AuthenticationServer;
+import com.anvex.server.LoginProcessor;
 import com.anvex.server.RunManager;
 import com.anvex.monitoring.MetricsCollector;
 import com.anvex.util.AppConfig;
@@ -55,8 +56,11 @@ public final class AnvexBackend {
         MetricsCollector metrics = new MetricsCollector();
         eventBus.subscribe(metrics::onEvent);
 
+        LoginProcessor loginProcessor = new LoginProcessor(new UserRepository(dbManager), eventBus, runManager);
+
         apiServer = new DashboardApiServer(detectionEngine, tracker, protectionEngine,
-                detectionConfig, protectionConfig, eventRepository, runManager, metrics, eventBus, apiPort);
+                detectionConfig, protectionConfig, eventRepository, runManager, metrics, eventBus, apiPort,
+                () -> System.getenv("ANVEX_API_TOKEN"), loginProcessor);
 
         seedDemoUsers(new UserRepository(dbManager));
 

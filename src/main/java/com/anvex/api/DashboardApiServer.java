@@ -11,8 +11,10 @@ import com.anvex.event.SecurityEvent;
 import com.anvex.monitoring.MetricsCollector;
 import com.anvex.persistence.EventRepository;
 import com.anvex.persistence.EventRepository.PersistedEvent;
+import com.anvex.protection.ProtectionAction;
 import com.anvex.protection.ProtectionConfig;
 import com.anvex.protection.ProtectionEngine;
+import com.anvex.server.LoginProcessor;
 import com.anvex.server.RunManager;
 import com.anvex.server.RunManager.RunInfo;
 import com.anvex.util.AppConfig;
@@ -25,6 +27,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.util.HashMap;
@@ -53,6 +58,7 @@ public final class DashboardApiServer {
     private final EventBus bus;
     private final Supplier<String> tokenSupplier;
     private final int apiPort;
+    private final LoginProcessor loginProcessor;
     private final List<SseClient> sseClients = new CopyOnWriteArrayList<>();
     private final EventListener sseListener = this::broadcastEvent;
     private final ExecutorService sseWriter;
@@ -85,6 +91,14 @@ public final class DashboardApiServer {
                               DetectionConfig detectionConfig, ProtectionConfig protectionConfig,
                               EventRepository events, RunManager runs, MetricsCollector metrics, EventBus bus,
                               int apiPort, Supplier<String> tokenSupplier) {
+        this(detection, tracker, protection, detectionConfig, protectionConfig, events, runs, metrics, bus,
+                apiPort, tokenSupplier, null);
+    }
+
+    public DashboardApiServer(DetectionEngine detection, SourceActivityTracker tracker, ProtectionEngine protection,
+                              DetectionConfig detectionConfig, ProtectionConfig protectionConfig,
+                              EventRepository events, RunManager runs, MetricsCollector metrics, EventBus bus,
+                              int apiPort, Supplier<String> tokenSupplier, LoginProcessor loginProcessor) {
         this.detection = detection;
         this.tracker = tracker;
         this.protection = protection;
@@ -96,6 +110,7 @@ public final class DashboardApiServer {
         this.bus = bus;
         this.apiPort = apiPort;
         this.tokenSupplier = tokenSupplier;
+        this.loginProcessor = loginProcessor;
 
         ThreadFactory factory = new ThreadFactory() {
             private final AtomicInteger counter = new AtomicInteger(0);
@@ -112,6 +127,7 @@ public final class DashboardApiServer {
     public void start() throws IOException {
         httpServer = HttpServer.create(new InetSocketAddress(AppConfig.SERVER_HOST, apiPort), 0);
         httpServer.createContext("/api", this::handleApi);
+        httpServer.createContext("/", this::handleStatic);
         httpServer.setExecutor(Executors.newCachedThreadPool(r -> {
             Thread t = new Thread(r, "DashboardApi-Http");
             t.setDaemon(true);
@@ -154,6 +170,7 @@ public final class DashboardApiServer {
             switch (method) {
                 case "GET" -> handleGet(exchange, route);
                 case "PUT" -> handlePut(exchange, route);
+                case "POST" -> handlePost(exchange, route);
                 default -> sendJson(exchange, 405, "{\"error\":\"Method not allowed\"}");
             }
         } catch (IllegalArgumentException e) {
@@ -224,6 +241,122 @@ public final class DashboardApiServer {
             return;
         }
         sendJson(exchange, 404, "{\"error\":\"Unknown endpoint\"}");
+    }
+
+    private void handlePost(HttpExchange exchange, String route) throws IOException, SQLException, InterruptedException {
+        if (route.equals("/runs")) {
+            if (runs.getCurrentRunId() != 0 && !bus.awaitIdle(5000)) {
+                sendJson(exchange, 503, "{\"error\":\"Previous run still processing\"}");
+                return;
+            }
+            detection.reset();
+            protection.reset();
+            metrics.reset();
+            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            Map<String, String> parsed = JsonParser.parseFlat(body);
+            String label = parsed.getOrDefault("label", "Lab Run");
+            long runId = runs.startRun(label);
+            sendJson(exchange, 200, "{\"runId\":" + runId + ",\"label\":" + q(label) + "}");
+            return;
+        }
+        if (route.equals("/simulate")) {
+            if (loginProcessor == null) {
+                sendJson(exchange, 503, "{\"error\":\"Simulator unavailable\"}");
+                return;
+            }
+            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            Map<String, String> parsed = JsonParser.parseFlat(body);
+            String username = parsed.get("username");
+            String password = parsed.get("password");
+            String clientType = parsed.getOrDefault("clientType", "ATTACKER");
+            String sourceId = parsed.get("sourceId");
+
+            if (username == null || username.isEmpty() || username.length() > 100
+                    || password == null || password.isEmpty() || password.length() > 512
+                    || sourceId == null || sourceId.isEmpty() || sourceId.length() > 100 || sourceId.contains("|")
+                    || (!"ATTACKER".equals(clientType) && !"LEGITIMATE".equals(clientType))) {
+                sendJson(exchange, 400, "{\"error\":\"Invalid simulation request\"}");
+                return;
+            }
+
+            ProtectionAction decision = protection.evaluateRequest(sourceId, Instant.now());
+            boolean delayed = false;
+            if (decision == ProtectionAction.BLOCK) {
+                loginProcessor.publishBlockedEvent(username, clientType, sourceId);
+                sendJson(exchange, 200, "{\"outcome\":\"BLOCKED\",\"protectionAction\":\"BLOCK\"}");
+                return;
+            }
+            if (decision == ProtectionAction.DELAY) {
+                try {
+                    Thread.sleep(protection.getHighDelayMs());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw e;
+                }
+                if (protection.evaluateRequest(sourceId, Instant.now()) == ProtectionAction.BLOCK) {
+                    loginProcessor.publishBlockedEvent(username, clientType, sourceId);
+                    sendJson(exchange, 200, "{\"outcome\":\"BLOCKED\",\"protectionAction\":\"BLOCK\"}");
+                    return;
+                }
+                delayed = true;
+            }
+
+            String outcome = loginProcessor.attempt(username, password, clientType, sourceId, decision);
+            if (delayed) {
+                sendJson(exchange, 200, "{\"outcome\":\"" + outcome + "\",\"protectionAction\":\"DELAY\"}");
+            } else {
+                sendJson(exchange, 200, "{\"outcome\":\"" + outcome + "\"}");
+            }
+            return;
+        }
+        sendJson(exchange, 404, "{\"error\":\"Unknown endpoint\"}");
+    }
+
+    private void handleStatic(HttpExchange exchange) throws IOException {
+        String path = exchange.getRequestURI().getPath();
+        if (path.equals("/") || path.isEmpty()) {
+            exchange.getResponseHeaders().set("Location", "/dashboard");
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+            return;
+        }
+
+        Path staticDir = Paths.get(System.getProperty("anvex.staticDir",
+                System.getenv().getOrDefault("ANVEX_STATIC_DIR", "frontend/dist")))
+                .toAbsolutePath().normalize();
+        String relative = path.equals("/lab") || path.equals("/dashboard")
+                ? "index.html"
+                : path.substring(1);
+        Path target = staticDir.resolve(relative).normalize();
+
+        if (!target.startsWith(staticDir) || !Files.isRegularFile(target)) {
+            if (path.equals("/lab") || path.equals("/dashboard") || !relative.contains("/")) {
+                sendJson(exchange, 404, "{\"error\":\"Frontend build missing. Run npm run build in frontend/\"}");
+            } else {
+                sendJson(exchange, 404, "{\"error\":\"Not found\"}");
+            }
+            return;
+        }
+
+        String contentType = contentTypeFor(target.getFileName().toString());
+        byte[] bytes = Files.readAllBytes(target);
+        exchange.getResponseHeaders().set("Content-Type", contentType);
+        exchange.sendResponseHeaders(200, bytes.length);
+        try (OutputStream out = exchange.getResponseBody()) {
+            out.write(bytes);
+        }
+    }
+
+    private String contentTypeFor(String name) {
+        if (name.endsWith(".html")) return "text/html; charset=utf-8";
+        if (name.endsWith(".js")) return "application/javascript; charset=utf-8";
+        if (name.endsWith(".css")) return "text/css; charset=utf-8";
+        if (name.endsWith(".svg")) return "image/svg+xml";
+        if (name.endsWith(".png")) return "image/png";
+        if (name.endsWith(".json")) return "application/json";
+        if (name.endsWith(".woff2")) return "font/woff2";
+        if (name.endsWith(".map")) return "application/json";
+        return "application/octet-stream";
     }
 
     private void handlePut(HttpExchange exchange, String route) throws IOException {

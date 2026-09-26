@@ -1,8 +1,6 @@
 package com.anvex.server;
 
 import com.anvex.event.EventBus;
-import com.anvex.event.SecurityEvent;
-import com.anvex.event.SecurityEventType;
 import com.anvex.persistence.UserRepository;
 import com.anvex.protection.ProtectionAction;
 import com.anvex.protection.ProtectionEngine;
@@ -18,8 +16,6 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.time.Instant;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.RejectedExecutionException;
@@ -30,8 +26,7 @@ public final class RequestHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
     private final Socket clientSocket;
-    private final UserRepository userRepository;
-    private final EventBus eventBus;
+    private final LoginProcessor loginProcessor;
     private final ProtectionEngine protectionEngine;
     private final RunManager runManager;
     private final ScheduledExecutorService delayPool;
@@ -39,15 +34,21 @@ public final class RequestHandler implements Runnable {
 
     public RequestHandler(Socket clientSocket, UserRepository userRepository, EventBus eventBus,
                           ProtectionEngine protectionEngine) {
-        this(clientSocket, userRepository, eventBus, protectionEngine, null, null, new Semaphore(128));
+        this(clientSocket, new LoginProcessor(userRepository, eventBus, null), protectionEngine,
+                null, null, new Semaphore(128));
     }
 
     public RequestHandler(Socket clientSocket, UserRepository userRepository, EventBus eventBus,
                           ProtectionEngine protectionEngine, RunManager runManager,
                           ScheduledExecutorService delayPool, Semaphore delayedSlots) {
+        this(clientSocket, new LoginProcessor(userRepository, eventBus, runManager), protectionEngine,
+                runManager, delayPool, delayedSlots);
+    }
+
+    private RequestHandler(Socket clientSocket, LoginProcessor loginProcessor, ProtectionEngine protectionEngine,
+                           RunManager runManager, ScheduledExecutorService delayPool, Semaphore delayedSlots) {
         this.clientSocket = clientSocket;
-        this.userRepository = userRepository;
-        this.eventBus = eventBus;
+        this.loginProcessor = loginProcessor;
         this.protectionEngine = protectionEngine;
         this.runManager = runManager;
         this.delayPool = delayPool;
@@ -98,7 +99,7 @@ public final class RequestHandler implements Runnable {
             ProtectionAction decision = protectionEngine.evaluateRequest(sourceId, Instant.now());
 
             if (decision == ProtectionAction.BLOCK) {
-                publishBlockedEvent(parsed);
+                loginProcessor.publishBlockedEvent(parsed.username(), parsed.clientType(), parsed.sourceId());
                 out.println("BLOCKED");
                 closeQuietly(socket);
                 return;
@@ -113,11 +114,13 @@ public final class RequestHandler implements Runnable {
                 try { Thread.sleep(protectionEngine.getHighDelayMs()); }
                 catch (InterruptedException e) { Thread.currentThread().interrupt(); closeQuietly(socket); return; }
                 if (protectionEngine.evaluateRequest(sourceId, Instant.now()) == ProtectionAction.BLOCK) {
-                    publishBlockedEvent(parsed); out.println("BLOCKED"); closeQuietly(socket); return;
+                    loginProcessor.publishBlockedEvent(parsed.username(), parsed.clientType(), parsed.sourceId());
+                    out.println("BLOCKED"); closeQuietly(socket); return;
                 }
             }
 
-            out.println(processLogin(parsed, decision));
+            out.println(loginProcessor.attempt(parsed.username(), parsed.password(),
+                    parsed.clientType(), parsed.sourceId(), decision));
             closeQuietly(socket);
 
         } catch (SocketTimeoutException e) {
@@ -168,8 +171,10 @@ public final class RequestHandler implements Runnable {
         try { delayPool.schedule(() -> {
             try {
                 if (protectionEngine.evaluateRequest(parsed.sourceId(), Instant.now()) == ProtectionAction.BLOCK) {
-                    publishBlockedEvent(parsed); out.println("BLOCKED");
-                } else out.println(processLogin(parsed, ProtectionAction.DELAY));
+                    loginProcessor.publishBlockedEvent(parsed.username(), parsed.clientType(), parsed.sourceId());
+                    out.println("BLOCKED");
+                } else out.println(loginProcessor.attempt(parsed.username(), parsed.password(),
+                        parsed.clientType(), parsed.sourceId(), ProtectionAction.DELAY));
             } catch (Exception e) {
                 logger.error("Error processing delayed request", e);
                 out.println("ERROR|Processing failed");
@@ -188,63 +193,6 @@ public final class RequestHandler implements Runnable {
             if (ch != '\r') value.append((char) ch);
         }
         return ch == -1 && value.isEmpty() ? null : value.toString();
-    }
-
-    private String processLogin(ParsedRequest parsed, ProtectionAction decision) {
-        long runId = currentRunId();
-
-        boolean success;
-        try { success = userRepository.verifyCredentials(parsed.username(), parsed.password()); }
-        catch (IllegalStateException e) { logger.error("Authentication database unavailable", e); return "ERROR|Database unavailable"; }
-
-        SecurityEventType eventType;
-        String outcome;
-
-        if (success) {
-            eventType = SecurityEventType.LOGIN_SUCCESS;
-            outcome = "SUCCESS";
-        } else {
-            eventType = SecurityEventType.LOGIN_FAILURE;
-            outcome = "FAILURE";
-        }
-
-        SecurityEvent.Builder eventBuilder = SecurityEvent.builder()
-                .runId(runId)
-                .eventType(eventType)
-                .username(parsed.username())
-                .clientType(parsed.clientType())
-                .source(parsed.sourceId())
-                .outcome(outcome)
-                .message(String.format("Login %s for user %s from %s",
-                        outcome.toLowerCase(), parsed.username(), parsed.sourceId()));
-
-        if (decision == ProtectionAction.DELAY) {
-            Map<String, String> metadata = new HashMap<>();
-            metadata.put("protectionAction", "DELAY");
-            metadata.put("delayMs", String.valueOf(protectionEngine.getHighDelayMs()));
-            eventBuilder.metadata(metadata);
-        }
-
-        eventBus.publish(eventBuilder.build());
-
-        logger.debug("Sent outcome: {}", outcome);
-        return outcome;
-    }
-
-    private void publishBlockedEvent(ParsedRequest parsed) {
-        eventBus.publish(SecurityEvent.builder()
-                .runId(currentRunId())
-                .eventType(SecurityEventType.LOGIN_BLOCKED)
-                .username(parsed.username())
-                .clientType(parsed.clientType())
-                .source(parsed.sourceId())
-                .outcome("BLOCKED")
-                .message(String.format("Login refused: source %s is under active protection", parsed.sourceId()))
-                .build());
-    }
-
-    private long currentRunId() {
-        return runManager != null ? runManager.ensureActiveRun() : 1;
     }
 
     private String resolveSourceAddress() {
