@@ -10,8 +10,21 @@ export function LabProvider({ children }) {
   const [templates] = useState(SCENARIO_TEMPLATES)
   const [sources, setSources] = useState(SOURCE_IDENTITIES)
   const [simulation, setSimulation] = useState(null)
+  const [config, setConfig] = useState({
+    name: 'Windows Failed Login Test',
+    typeId: 'failed-login',
+    sourceId: SOURCE_IDENTITIES[0]?.id || '',
+    targetUser: 'lab_target',
+    attempts: 10,
+    interval: 5,
+    mode: 'realistic'
+  })
   const stopRef = useRef(false)
   const timerRef = useRef(null)
+
+  const updateConfig = useCallback((partial) => {
+    setConfig((prev) => ({ ...prev, ...partial }))
+  }, [])
 
   const signIn = useCallback(async (operatorName, token, remember) => {
     setToken(remember ? token : '')
@@ -143,12 +156,14 @@ export function LabProvider({ children }) {
     templates,
     sources,
     simulation,
+    config,
+    updateConfig,
     signIn,
     signOut,
     startSimulation,
     stopSimulation,
     addSource
-  }), [authed, operator, templates, sources, simulation, signIn, signOut, startSimulation, stopSimulation, addSource])
+  }), [authed, operator, templates, sources, simulation, config, updateConfig, signIn, signOut, startSimulation, stopSimulation, addSource])
 
   return <LabContext.Provider value={value}>{children}</LabContext.Provider>
 }

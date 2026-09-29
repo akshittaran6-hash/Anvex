@@ -4,53 +4,49 @@ import Tabs from '../../components/Tabs.jsx'
 import { TextField, SelectField, RadioGroup } from '../../components/FormControls.jsx'
 import { PrimaryButton } from '../../components/Buttons.jsx'
 import { useLab } from '../lab-context.jsx'
+import EventPayloadPreview from './EventPayloadPreview.jsx'
 import './create-simulation.css'
 
 const SUB_TABS = ['BASIC', 'TARGET', 'PAYLOAD', 'SCHEDULE', 'REVIEW']
 
 export default function CreateSimulation({ onStart }) {
-  const { sources, templates, startSimulation } = useLab()
+  const { sources, templates, startSimulation, config, updateConfig } = useLab()
   const [subTab, setSubTab] = useState('BASIC')
-  const [name, setName] = useState('Windows Failed Login Test')
-  const [typeId, setType] = useState('failed-login')
-  const [sourceId, setSourceIdentity] = useState(sources[0]?.id || '')
-  const [targetUser, setTargetUser] = useState('lab_target')
-  const [attempts, setAttempts] = useState(10)
-  const [interval, setIntervalSeconds] = useState(5)
-  const [mode, setMode] = useState('realistic')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  const template = templates.find((t) => t.id === typeId)
+  const template = templates.find((t) => t.id === config.typeId)
 
   function applyTemplate(id) {
-    setType(id)
     const tpl = templates.find((t) => t.id === id)
     if (tpl) {
-      setName(tpl.name)
-      setAttempts(tpl.config.attempts)
-      setIntervalSeconds(tpl.config.interval)
-      setMode(tpl.config.mode)
+      updateConfig({
+        typeId: id,
+        name: tpl.name,
+        attempts: tpl.config.attempts,
+        interval: tpl.config.interval,
+        mode: tpl.config.mode
+      })
     }
   }
 
   function handleStart(e) {
     e.preventDefault()
-    if (!sourceId) {
+    if (!config.sourceId) {
       setError('Select a source identity')
       return
     }
     setBusy(true)
     setError('')
     startSimulation({
-      name,
-      type: template ? template.name : typeId,
-      sourceId,
-      targetUser,
-      attempts: Number(attempts) || 1,
-      interval: Number(interval) || 0,
-      mode,
-      multiSource: mode === 'custom'
+      name: config.name,
+      type: template ? template.name : config.typeId,
+      sourceId: config.sourceId,
+      targetUser: config.targetUser,
+      attempts: Number(config.attempts) || 1,
+      interval: Number(config.interval) || 0,
+      mode: config.mode,
+      multiSource: config.mode === 'custom'
     }).catch(() => {})
     onStart()
   }
@@ -62,31 +58,31 @@ export default function CreateSimulation({ onStart }) {
       </div>
       {subTab === 'BASIC' && (
         <form className="create-form" onSubmit={handleStart}>
-          <TextField label="Simulation Name" value={name} onChange={setName} />
+          <TextField label="Simulation Name" value={config.name} onChange={(v) => updateConfig({ name: v })} />
           <SelectField
             label="Simulation Type"
-            value={typeId}
+            value={config.typeId}
             onChange={applyTemplate}
             options={templates.map((t) => ({ value: t.id, label: t.name }))}
           />
           <SelectField
             label="Source Identity"
-            value={sourceId}
-            onChange={setSourceIdentity}
+            value={config.sourceId}
+            onChange={(v) => updateConfig({ sourceId: v })}
             options={sources.map((s) => ({ value: s.id, label: `${s.id} (${s.ip})` }))}
           />
           <div className="create-row">
-            <TextField label="Target User" value={targetUser} onChange={setTargetUser} />
-            <TextField label="Target Service" value="ANVEX Core Authentication (Event 4215)" onChange={() => {}} disabled />
+            <TextField label="Target User" value={config.targetUser} onChange={(v) => updateConfig({ targetUser: v })} />
+            <TextField label="Target Service" value="ANVEX Core Authentication (Event 4625)" onChange={() => {}} disabled />
           </div>
           <div className="create-row">
-            <TextField label="Attempts" value={attempts} onChange={setAttempts} type="number" />
-            <TextField label="Interval (seconds)" value={interval} onChange={setIntervalSeconds} type="number" />
+            <TextField label="Attempts" value={config.attempts} onChange={(v) => updateConfig({ attempts: v })} type="number" />
+            <TextField label="Interval (seconds)" value={config.interval} onChange={(v) => updateConfig({ interval: v })} type="number" />
           </div>
           <RadioGroup
             label="Simulation Mode"
-            value={mode}
-            onChange={setMode}
+            value={config.mode}
+            onChange={(v) => updateConfig({ mode: v })}
             options={[
               { value: 'realistic', label: 'Realistic' },
               { value: 'burst', label: 'Burst' },
@@ -99,7 +95,8 @@ export default function CreateSimulation({ onStart }) {
           </div>
         </form>
       )}
-      {subTab !== 'BASIC' && (
+      {subTab === 'PAYLOAD' && <EventPayloadPreview />}
+      {subTab !== 'BASIC' && subTab !== 'PAYLOAD' && (
         <p className="create-placeholder">{subTab.charAt(0) + subTab.slice(1).toLowerCase()} configuration pending.</p>
       )}
     </PanelShell>

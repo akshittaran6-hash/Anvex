@@ -5,6 +5,8 @@ import AdminLogin from './panels/AdminLogin.jsx'
 import LabHome from './panels/LabHome.jsx'
 import CreateSimulation from './panels/CreateSimulation.jsx'
 import SimulationRunning from './panels/SimulationRunning.jsx'
+import ScenarioTemplates from './panels/ScenarioTemplates.jsx'
+import SourceIdentityManager from './panels/SourceIdentityManager.jsx'
 import './lab.css'
 
 const NAV = ['HOME', 'CREATE', 'TEMPLATES', 'SOURCES', 'HISTORY', 'SETTINGS']
@@ -48,8 +50,8 @@ function LabShell() {
         {effectiveView === 'RUNNING' && (
           <SimulationRunning onNewSimulation={() => setRunMode(false)} />
         )}
-        {effectiveView === 'TEMPLATES' && <div className="placeholder">TEMPLATES panel pending.</div>}
-        {effectiveView === 'SOURCES' && <div className="placeholder">SOURCES panel pending.</div>}
+        {effectiveView === 'TEMPLATES' && <ScenarioTemplates onNavigate={setView} />}
+        {effectiveView === 'SOURCES' && <SourceIdentityManager />}
         {effectiveView === 'HISTORY' && <div className="placeholder">HISTORY panel pending.</div>}
         {effectiveView === 'SETTINGS' && <div className="placeholder">SETTINGS panel pending.</div>}
       </main>
