@@ -1,0 +1,196 @@
+.sim-layout {
+  display: grid;
+  grid-template-columns: 1.55fr 0.95fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.sim-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.sim-run-badge {
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.badge-running { color: var(--red); }
+.badge-done { color: var(--green); }
+
+.sim-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.sim-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sim-desc {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.sim-elapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.sim-elapsed-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.sim-elapsed-value {
+  font-family: var(--font-data);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+.sim-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sim-sent {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.sim-sent-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.sim-sent-value {
+  font-family: var(--font-data);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sim-sent-of {
+  color: var(--text-dim);
+  font-weight: 400;
+  font-size: 12px;
+}
+
+.sim-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+
+.sim-source-row {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sim-source-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.sim-source-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.sim-source-id {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+.sim-source-ip {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sim-source-meta {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+}
+
+.sim-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.sim-mode-note {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-data);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.sim-log-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.sim-log {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.sim-log-empty {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 12px 0;
+}
+
+.sim-empty {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+@media (max-width: 1100px) {
+  .sim-layout {
+    grid-template-columns: 1fr;
+  }
+}

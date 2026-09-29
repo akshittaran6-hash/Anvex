@@ -259,6 +259,16 @@ public final class DashboardApiServer {
             sendJson(exchange, 200, "{\"runId\":" + runId + ",\"label\":" + q(label) + "}");
             return;
         }
+        if (route.equals("/runs/end")) {
+            long runId = runs.getCurrentRunId();
+            if (runId == 0) {
+                sendJson(exchange, 400, "{\"error\":\"No active run\"}");
+                return;
+            }
+            runs.endRun();
+            sendJson(exchange, 200, "{\"runId\":" + runId + ",\"status\":\"COMPLETED\"}");
+            return;
+        }
         if (route.equals("/simulate")) {
             if (loginProcessor == null) {
                 sendJson(exchange, 503, "{\"error\":\"Simulator unavailable\"}");
@@ -434,8 +444,19 @@ public final class DashboardApiServer {
     }
 
     private String status() {
+        long eventCount;
+        long alertCount;
+        try {
+            eventCount = events.countEvents();
+            alertCount = events.countAlerts();
+        } catch (SQLException e) {
+            eventCount = -1;
+            alertCount = -1;
+        }
         return "{\"runId\":" + runs.getCurrentRunId()
                 + ",\"trackedSources\":" + tracker.sourceIds().size()
+                + ",\"eventCount\":" + eventCount
+                + ",\"alertCount\":" + alertCount
                 + ",\"serverRunning\":true"
                 + ",\"apiPort\":" + apiPort + "}";
     }

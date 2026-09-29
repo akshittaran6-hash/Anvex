@@ -1,0 +1,43 @@
+.create-panel {
+  max-width: 860px;
+}
+
+.create-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.create-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.create-error {
+  font-family: var(--font-data);
+  font-size: 10.5px;
+  color: var(--red);
+}
+
+.create-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.create-placeholder {
+  font-family: var(--font-data);
+  font-size: 11px;
+  color: var(--text-dim);
+  padding: 16px 0;
+}

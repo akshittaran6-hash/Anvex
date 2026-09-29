@@ -1,0 +1,132 @@
+.lab-home {
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr;
+  gap: 14px;
+  align-items: stretch;
+}
+
+.home-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.home-title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.home-desc {
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  max-width: 300px;
+}
+
+.home-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  min-width: 220px;
+}
+
+.home-connection {
+  width: 100%;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 14px 0 18px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+
+.home-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.home-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% 40%, rgba(47, 123, 255, 0.1), transparent 65%);
+}
+
+.home-globe {
+  position: relative;
+  width: 190px;
+  height: 190px;
+}
+
+.hg-ring {
+  position: absolute;
+  border: 1px solid rgba(79, 216, 255, 0.16);
+  border-radius: 50%;
+}
+
+.hg-1 { inset: 0; }
+.hg-2 { inset: 28px; border-color: rgba(79, 216, 255, 0.26); }
+.hg-3 { inset: 56px; border-color: rgba(79, 216, 255, 0.38); }
+
+.hg-core {
+  position: absolute;
+  inset: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79, 216, 255, 0.9), rgba(47, 123, 255, 0.35) 65%, transparent);
+  box-shadow: 0 0 26px rgba(47, 123, 255, 0.45);
+  animation: globe-breathe 5s ease-in-out infinite;
+}
+
+.hg-arc {
+  position: absolute;
+  inset: 10px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-top-color: rgba(219, 231, 251, 0.5);
+  transform: rotate(-28deg);
+}
+
+.home-visual-caption {
+  font-family: var(--font-data);
+  font-size: 8.5px;
+  letter-spacing: 0.26em;
+  color: var(--text-dim);
+}
+
+@media (max-width: 1100px) {
+  .lab-home {
+    grid-template-columns: 1fr;
+  }
+  .home-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

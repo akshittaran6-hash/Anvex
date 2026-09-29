@@ -237,6 +237,35 @@ class DashboardApiTest {
     }
 
     @Test
+    void runsEndEndpointCompletesRun() throws Exception {
+        request("POST", "/api/runs", "{\"label\":\"End Test\"}");
+        assertTrue(bus.awaitIdle(3000));
+
+        HttpConnection ended = request("POST", "/api/runs/end", null);
+        assertEquals(200, ended.status());
+        assertTrue(ended.body().contains("\"status\":\"COMPLETED\""), ended.body());
+
+        assertTrue(bus.awaitIdle(3000));
+        HttpConnection list = get("/api/runs");
+        assertTrue(list.body().contains("COMPLETED"), "Ended run must show COMPLETED in history");
+
+        HttpConnection noRun = request("POST", "/api/runs/end", null);
+        assertEquals(400, noRun.status(), "Ending with no active run must fail");
+    }
+
+    @Test
+    void statusEndpointReportsEventCounts() throws Exception {
+        request("POST", "/api/simulate",
+                "{\"username\":\"nobody\",\"password\":\"wrong\",\"clientType\":\"ATTACKER\",\"sourceId\":\"10.5.5.5\"}");
+        assertTrue(bus.awaitIdle(3000));
+
+        HttpConnection response = get("/api/status");
+        assertTrue(response.body().contains("\"eventCount\":"), response.body());
+        assertFalse(response.body().contains("\"eventCount\":0"),
+                "Event count must reflect persisted events after the simulation");
+    }
+
+    @Test
     void tokenRequiredWhenConfigured() throws Exception {
         tearDown();
         tokenSupplier = () -> "test-token-123";
