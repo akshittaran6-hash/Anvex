@@ -49,8 +49,8 @@
 .safety-toggles {
   display: flex;
   flex-direction: column;
-  gap: 13px;
-  padding-bottom: 14px;
+  gap: 11px;
+  padding-bottom: 12px;
 }
 
 .safety-warning {

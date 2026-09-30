@@ -6,12 +6,16 @@
 .schedule-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .schedule-row {
   display: grid;
   gap: 12px;
+}
+
+.schedule-row > * {
+  min-width: 0;
 }
 
 .schedule-row-3 {
@@ -20,6 +24,18 @@
 
 .schedule-row-2 {
   grid-template-columns: 1fr 1fr;
+}
+
+.schedule-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: opacity 0.2s ease;
+}
+
+.schedule-fields-off {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .schedule-toggles {

@@ -136,7 +136,7 @@ export default function SchedulingAutomation() {
     setSavedNote(
       updated.enabled
         ? `Saved locally. Next run: ${nextRun ? formatNextRun(nextRun) : '—'}`
-        : 'Saved locally. Scheduling disabled.'
+        : 'Saved locally. Scheduling is disabled — timer not armed.'
     )
   }
 
@@ -153,26 +153,28 @@ export default function SchedulingAutomation() {
           on={schedule.enabled}
           onChange={(v) => setSchedule((p) => ({ ...p, enabled: v }))}
         />
-        <div className="schedule-row schedule-row-3">
-          <TextField label="Start Date" value={schedule.date} onChange={(v) => setSchedule((p) => ({ ...p, date: v }))} type="date" />
-          <TextField label="Time" value={schedule.time} onChange={(v) => setSchedule((p) => ({ ...p, time: v }))} type="time" />
-          <SelectField label="Recurrence" value={schedule.recurrence} onChange={(v) => setSchedule((p) => ({ ...p, recurrence: v }))} options={RECURRENCES} />
-        </div>
-        <div className="schedule-row schedule-row-2">
-          <TextField label="Time Window (min)" value={schedule.window} onChange={(v) => setSchedule((p) => ({ ...p, window: v }))} type="number" />
-          <TextField label="End Time" value={schedule.endTime} onChange={(v) => setSchedule((p) => ({ ...p, endTime: v }))} type="time" />
-        </div>
-        <div className="schedule-toggles">
-          <Toggle
-            label="Auto-stop after completion"
-            on={schedule.autoStop}
-            onChange={(v) => setSchedule((p) => ({ ...p, autoStop: v }))}
-          />
-          <Toggle
-            label="Send notification on completion"
-            on={schedule.notify}
-            onChange={(v) => setSchedule((p) => ({ ...p, notify: v }))}
-          />
+        <div className={`schedule-fields ${schedule.enabled ? '' : 'schedule-fields-off'}`}>
+          <div className="schedule-row schedule-row-3">
+            <TextField label="Start Date" value={schedule.date} onChange={(v) => setSchedule((p) => ({ ...p, date: v }))} type="date" />
+            <TextField label="Time" value={schedule.time} onChange={(v) => setSchedule((p) => ({ ...p, time: v }))} type="time" />
+            <SelectField label="Recurrence" value={schedule.recurrence} onChange={(v) => setSchedule((p) => ({ ...p, recurrence: v }))} options={RECURRENCES} />
+          </div>
+          <div className="schedule-row schedule-row-2">
+            <TextField label="Time Window (min)" value={schedule.window} onChange={(v) => setSchedule((p) => ({ ...p, window: v }))} type="number" />
+            <TextField label="End Time" value={schedule.endTime} onChange={(v) => setSchedule((p) => ({ ...p, endTime: v }))} type="time" />
+          </div>
+          <div className="schedule-toggles">
+            <Toggle
+              label="Auto-stop after completion"
+              on={schedule.autoStop}
+              onChange={(v) => setSchedule((p) => ({ ...p, autoStop: v }))}
+            />
+            <Toggle
+              label="Send notification on completion"
+              on={schedule.notify}
+              onChange={(v) => setSchedule((p) => ({ ...p, notify: v }))}
+            />
+          </div>
         </div>
         {lastNotification && (
           <p className="schedule-notification">NOTIFICATION: {lastNotification}</p>

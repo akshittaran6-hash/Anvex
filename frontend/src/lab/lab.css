@@ -51,6 +51,10 @@
   align-items: start;
 }
 
+.settings-grid > * {
+  min-width: 0;
+}
+
 @media (max-width: 1200px) {
   .settings-grid {
     grid-template-columns: 1fr 1fr;

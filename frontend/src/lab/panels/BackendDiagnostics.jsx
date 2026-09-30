@@ -91,25 +91,28 @@ export default function BackendDiagnostics() {
           </div>
         </div>
         <div className="diagnostics-metrics">
-          <div className="diagnostics-metric-tiles">
-            <MetricDisplay
-              value={metrics ? metrics.attackerAttempts : '—'}
-              label="Attempts (backend)"
-              accent="cyan"
-              size="sm"
-            />
-            <MetricDisplay
-              value={metrics ? metrics.attackerFailures : '—'}
-              label="Failures (backend)"
-              accent="orange"
-              size="sm"
-            />
-            <MetricDisplay
-              value={metrics ? metrics.attackerBlocked : '—'}
-              label="Blocked (backend)"
-              accent="red"
-              size="sm"
-            />
+          <div className="diagnostics-block">
+            <span className="diagnostics-block-title">Backend Metrics</span>
+            <div className="diagnostics-metric-tiles">
+              <MetricDisplay
+                value={metrics ? metrics.attackerAttempts : '—'}
+                label="Attempts"
+                accent="cyan"
+                size="sm"
+              />
+              <MetricDisplay
+                value={metrics ? metrics.attackerFailures : '—'}
+                label="Failures"
+                accent="orange"
+                size="sm"
+              />
+              <MetricDisplay
+                value={metrics ? metrics.attackerBlocked : '—'}
+                label="Blocked"
+                accent="red"
+                size="sm"
+              />
+            </div>
           </div>
           <div className="diagnostics-latency">
             <div className="diagnostics-latency-head">
