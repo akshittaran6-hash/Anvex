@@ -1,0 +1,21 @@
+.evidence-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.evidence-tag {
+  font-family: var(--font-data);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+
+.tag-orange { color: var(--orange); border-color: rgba(255, 122, 61, 0.45); background: rgba(255, 122, 61, 0.07); }
+.tag-cyan { color: var(--cyan); border-color: rgba(79, 216, 255, 0.4); background: rgba(79, 216, 255, 0.06); }
+.tag-red { color: var(--red); border-color: rgba(255, 77, 94, 0.5); background: rgba(255, 77, 94, 0.07); }
+.tag-green { color: var(--green); border-color: rgba(46, 227, 138, 0.4); background: rgba(46, 227, 138, 0.06); }

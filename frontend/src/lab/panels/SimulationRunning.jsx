@@ -24,7 +24,7 @@ const OUTCOME_LABELS = {
   ERROR: 'ERROR'
 }
 
-export default function SimulationRunning({ onNewSimulation }) {
+export default function SimulationRunning({ onNewSimulation, onInspect }) {
   const { sources, simulation, stopSimulation } = useLab()
   const [now, setNow] = useState(Date.now())
 
@@ -95,7 +95,12 @@ export default function SimulationRunning({ onNewSimulation }) {
             STOP SIMULATION
           </DangerButton>
           {simulation.status !== 'running' && (
-            <SecondaryButton onClick={onNewSimulation}>NEW SIMULATION</SecondaryButton>
+            <>
+              <SecondaryButton onClick={onNewSimulation}>NEW SIMULATION</SecondaryButton>
+              {onInspect && simulation.runId && (
+                <SecondaryButton onClick={() => onInspect(simulation.runId)}>INSPECT RUN →</SecondaryButton>
+              )}
+            </>
           )}
           <div className="sim-mode-note">
             <span>Simulation Mode: {simulation.mode === 'burst' ? 'Burst' : simulation.mode === 'custom' ? 'Custom' : 'Realistic'}</span>

@@ -15,6 +15,21 @@
   grid-template-columns: 0.9fr 1.6fr 0.8fr 0.7fr 0.7fr 0.7fr 0.9fr 1fr;
 }
 
+.run-row-history {
+  grid-template-columns: 0.8fr 1.7fr 1fr 0.65fr 0.65fr 0.65fr 0.95fr 0.8fr 1fr;
+  cursor: pointer;
+}
+
+.cell-peak {
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.cell-metric.accent-cyan { color: var(--cyan); }
+.cell-metric.accent-orange { color: var(--orange); }
+.cell-metric.accent-red { color: var(--red); }
+
 .table-row:hover {
   background: rgba(47, 123, 255, 0.05);
 }

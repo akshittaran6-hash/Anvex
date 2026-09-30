@@ -10,6 +10,8 @@ import SourceIdentityManager from './panels/SourceIdentityManager.jsx'
 import SafetyControls from './panels/SafetyControls.jsx'
 import SchedulingAutomation from './panels/SchedulingAutomation.jsx'
 import BackendDiagnostics from './panels/BackendDiagnostics.jsx'
+import RunHistory from './panels/RunHistory.jsx'
+import RunDetail from './panels/RunDetail.jsx'
 import './lab.css'
 
 const NAV = ['HOME', 'CREATE', 'TEMPLATES', 'SOURCES', 'HISTORY', 'SETTINGS']
@@ -18,6 +20,7 @@ function LabShell() {
   const { authed, simulation } = useLab()
   const [view, setView] = useState('HOME')
   const [runMode, setRunMode] = useState(false)
+  const [historySelection, setHistorySelection] = useState(null)
 
   if (!authed) {
     return <AdminLogin />
@@ -51,11 +54,21 @@ function LabShell() {
           <CreateSimulation onStart={() => setRunMode(true)} />
         )}
         {effectiveView === 'RUNNING' && (
-          <SimulationRunning onNewSimulation={() => setRunMode(false)} />
+          <SimulationRunning
+            onNewSimulation={() => setRunMode(false)}
+            onInspect={(runId) => {
+              setHistorySelection(runId)
+              setView('HISTORY')
+            }}
+          />
         )}
         {effectiveView === 'TEMPLATES' && <ScenarioTemplates onNavigate={setView} />}
         {effectiveView === 'SOURCES' && <SourceIdentityManager />}
-        {effectiveView === 'HISTORY' && <div className="placeholder">HISTORY panel pending.</div>}
+        {effectiveView === 'HISTORY' && (
+          historySelection === null
+            ? <RunHistory onSelect={(id) => setHistorySelection(Number(id.replace('RUN-', '')))} />
+            : <RunDetail runId={historySelection} onBack={() => setHistorySelection(null)} />
+        )}
         {effectiveView === 'SETTINGS' && (
           <div className="settings-grid">
             <SafetyControls />

@@ -19,12 +19,13 @@ const TYPE_ACCENTS = {
   SERVER_STOPPED: 'muted'
 }
 
-export default function EventRow({ time, type, message, level, statusBadge, compact = false }) {
+export default function EventRow({ time, type, message, level, source, statusBadge, compact = false }) {
   const accent = TYPE_ACCENTS[type] || 'muted'
   return (
     <div className={`event-row ${compact ? 'event-compact' : ''}`}>
       <span className="event-time">{time}</span>
       <span className={`event-type accent-${accent}`}>{type}</span>
+      {source && <span className="event-source">{source}</span>}
       {!compact && <span className="event-message">{message}</span>}
       {level && <span className={`event-level level-${level.toLowerCase()}`}>{level}</span>}
       {statusBadge && <span className="event-status">{statusBadge}</span>}

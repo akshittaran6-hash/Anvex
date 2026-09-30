@@ -65,6 +65,15 @@
   white-space: nowrap;
 }
 
+.event-source {
+  color: var(--text-dim);
+  font-size: 10px;
+  white-space: nowrap;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .accent-green { color: var(--green); }
 .accent-red { color: var(--red); }
 .accent-orange { color: var(--orange); }

@@ -7,10 +7,25 @@ const STATUS_ACCENT = {
   Failed: 'red'
 }
 
-export function RunRow({ run }) {
+export function RunRow({ run, variant = 'runs', selected, onClick }) {
   const accent = STATUS_ACCENT[run.status] || 'muted'
+  if (variant === 'history') {
+    return (
+      <div className={`table-row run-row-history ${selected ? 'row-selected' : ''}`} onClick={onClick}>
+        <span className="cell cell-id">{run.runId}</span>
+        <span className="cell cell-name">{run.label}</span>
+        <span className="cell cell-type">{run.type || '—'}</span>
+        <span className="cell cell-metric accent-cyan">{run.events ?? '—'}</span>
+        <span className="cell cell-metric accent-orange">{run.failed ?? '—'}</span>
+        <span className="cell cell-metric accent-red">{run.blocked ?? '—'}</span>
+        <span className={`cell cell-peak level-${(run.peak || 'normal').toLowerCase()}`}>{run.peak || 'NORMAL'}</span>
+        <span className="cell cell-time">{run.elapsed ?? '—'}</span>
+        <span className="cell cell-time">{run.started}</span>
+      </div>
+    )
+  }
   return (
-    <div className="table-row run-row">
+    <div className={`table-row run-row ${selected ? 'row-selected' : ''}`} onClick={onClick}>
       <span className="cell cell-id">{run.runId}</span>
       <span className="cell cell-name">{run.label}</span>
       <span className="cell cell-type">{run.type || '—'}</span>
