@@ -1,0 +1,152 @@
+.diagnostics-panel {
+  max-width: 100%;
+}
+
+.diagnostics-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.1fr 0.7fr;
+  gap: 16px;
+}
+
+.diagnostics-connection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diagnostics-block {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.diagnostics-block-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.diagnostics-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.diagnostics-metric-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.diagnostics-latency {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.diagnostics-latency-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.diagnostics-latency-value {
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+.diagnostics-latency .mini-chart {
+  width: 100%;
+  height: 30px;
+}
+
+.diagnostics-sim {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
+.diagnostics-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.diag-server {
+  position: relative;
+  width: 64px;
+  height: 84px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-panel-raise);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.diag-server-light {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px rgba(46, 227, 138, 0.8);
+  animation: connection-pulse 2.4s ease-in-out infinite;
+}
+
+.diag-server-light.off {
+  background: var(--red);
+  box-shadow: none;
+  animation: none;
+}
+
+.diag-server-slot {
+  width: 40px;
+  height: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  background: var(--bg-inset);
+}
+
+.diagnostics-visual-caption {
+  font-family: var(--font-data);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  color: var(--text-dim);
+}
+
+@media (max-width: 1100px) {
+  .diagnostics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .diagnostics-visual {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .diagnostics-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -7,6 +7,9 @@ import CreateSimulation from './panels/CreateSimulation.jsx'
 import SimulationRunning from './panels/SimulationRunning.jsx'
 import ScenarioTemplates from './panels/ScenarioTemplates.jsx'
 import SourceIdentityManager from './panels/SourceIdentityManager.jsx'
+import SafetyControls from './panels/SafetyControls.jsx'
+import SchedulingAutomation from './panels/SchedulingAutomation.jsx'
+import BackendDiagnostics from './panels/BackendDiagnostics.jsx'
 import './lab.css'
 
 const NAV = ['HOME', 'CREATE', 'TEMPLATES', 'SOURCES', 'HISTORY', 'SETTINGS']
@@ -53,7 +56,13 @@ function LabShell() {
         {effectiveView === 'TEMPLATES' && <ScenarioTemplates onNavigate={setView} />}
         {effectiveView === 'SOURCES' && <SourceIdentityManager />}
         {effectiveView === 'HISTORY' && <div className="placeholder">HISTORY panel pending.</div>}
-        {effectiveView === 'SETTINGS' && <div className="placeholder">SETTINGS panel pending.</div>}
+        {effectiveView === 'SETTINGS' && (
+          <div className="settings-grid">
+            <SafetyControls />
+            <SchedulingAutomation />
+            <BackendDiagnostics />
+          </div>
+        )}
       </main>
       <footer className="lab-footer">
         <span>SYSTEM 1 | LAB CLIENT</span>

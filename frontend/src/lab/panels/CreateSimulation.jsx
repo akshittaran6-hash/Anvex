@@ -10,7 +10,7 @@ import './create-simulation.css'
 const SUB_TABS = ['BASIC', 'TARGET', 'PAYLOAD', 'SCHEDULE', 'REVIEW']
 
 export default function CreateSimulation({ onStart }) {
-  const { sources, templates, startSimulation, config, updateConfig } = useLab()
+  const { sources, templates, startSimulation, config, updateConfig, safety } = useLab()
   const [subTab, setSubTab] = useState('BASIC')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -36,6 +36,14 @@ export default function CreateSimulation({ onStart }) {
       setError('Select a source identity')
       return
     }
+    if (safety.safeMode === false) {
+      setError('Safe mode is required before running simulations. Enable it in SAFETY CONTROLS.')
+      return
+    }
+    if (safety.targetValidation && String(config.targetUser).trim() !== 'lab_target') {
+      setError('Target validation is ON: only the designated target (lab_target) is approved.')
+      return
+    }
     setBusy(true)
     setError('')
     startSimulation({
@@ -46,7 +54,8 @@ export default function CreateSimulation({ onStart }) {
       attempts: Number(config.attempts) || 1,
       interval: Number(config.interval) || 0,
       mode: config.mode,
-      multiSource: config.mode === 'custom'
+      multiSource: config.mode === 'custom',
+      autoStopRun: true
     }).catch(() => {})
     onStart()
   }

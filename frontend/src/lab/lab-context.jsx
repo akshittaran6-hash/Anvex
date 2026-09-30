@@ -19,11 +19,25 @@ export function LabProvider({ children }) {
     interval: 5,
     mode: 'realistic'
   })
+  const [safety, setSafety] = useState({
+    safeMode: true,
+    rateLimiting: true,
+    targetValidation: true,
+    payloadSanitization: true
+  })
   const stopRef = useRef(false)
   const timerRef = useRef(null)
 
   const updateConfig = useCallback((partial) => {
     setConfig((prev) => ({ ...prev, ...partial }))
+  }, [])
+
+  const updateSafety = useCallback((partial) => {
+    setSafety((prev) => ({ ...prev, ...partial }))
+  }, [])
+
+  const sanitize = useCallback((value) => {
+    return String(value).replace(/[|\r\n]/g, '').trim()
   }, [])
 
   const signIn = useCallback(async (operatorName, token, remember) => {
@@ -64,14 +78,24 @@ export function LabProvider({ children }) {
     })
   }, [])
 
-  const startSimulation = useCallback(async (config) => {
-    const { name, type, sourceId, targetUser, attempts, interval, mode } = config
-    const run = await api.post('/api/runs', { label: name })
-    const effectiveInterval = mode === 'burst' ? Math.min(interval, 0.5) : interval
+  const startSimulation = useCallback(async (startConfig) => {
+    if (safety.safeMode !== true) {
+      throw new Error('Safe mode is required before running simulations. Enable it in Safety Controls.')
+    }
+    if (safety.targetValidation && String(startConfig.targetUser).trim() !== 'lab_target') {
+      throw new Error('Target validation is ON: only the designated target (lab_target) is approved.')
+    }
+
+    const { name, type, sourceId, targetUser, attempts, interval, mode } = startConfig
+    const run = await api.post('/api/runs', { label: sanitize(name) })
+    let effectiveInterval = mode === 'burst' ? Math.min(interval, 0.5) : interval
+    if (safety.rateLimiting) {
+      effectiveInterval = Math.max(effectiveInterval, 0.3)
+    }
 
     stopRef.current = false
 
-    const attemptSources = config.multiSource
+    const attemptSources = startConfig.multiSource
       ? sources.map((s) => s.id)
       : [sourceId]
 
@@ -101,10 +125,10 @@ export function LabProvider({ children }) {
       let entry
       try {
         const response = await api.post('/api/simulate', {
-          username: targetUser,
+          username: safety.payloadSanitization ? sanitize(targetUser) : targetUser,
           password: `wrong-guess-${i}`,
           clientType: 'ATTACKER',
-          sourceId: attemptSource
+          sourceId: safety.payloadSanitization ? sanitize(attemptSource) : attemptSource
         })
         entry = {
           time: new Date().toLocaleTimeString('en-GB', { hour12: false }),
@@ -141,10 +165,12 @@ export function LabProvider({ children }) {
 
     timerRef.current = null
     if (!stopRef.current) {
-      api.post('/api/runs/end', null).catch(() => {})
+      if (startConfig.autoStopRun !== false) {
+        api.post('/api/runs/end', null).catch(() => {})
+      }
       setSimulation((prev) => (prev ? { ...prev, status: 'completed', completedAt: Date.now() } : prev))
     }
-  }, [sources])
+  }, [sources, safety, sanitize])
 
   const addSource = useCallback((source) => {
     setSources((prev) => [...prev, source])
@@ -158,12 +184,14 @@ export function LabProvider({ children }) {
     simulation,
     config,
     updateConfig,
+    safety,
+    updateSafety,
     signIn,
     signOut,
     startSimulation,
     stopSimulation,
     addSource
-  }), [authed, operator, templates, sources, simulation, config, updateConfig, signIn, signOut, startSimulation, stopSimulation, addSource])
+  }), [authed, operator, templates, sources, simulation, config, updateConfig, safety, updateSafety, signIn, signOut, startSimulation, stopSimulation, addSource])
 
   return <LabContext.Provider value={value}>{children}</LabContext.Provider>
 }

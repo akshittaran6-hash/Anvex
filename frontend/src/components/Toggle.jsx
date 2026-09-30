@@ -1,9 +1,14 @@
 import './toggle.css'
 
-export default function Toggle({ on, onChange, disabled, label }) {
+export default function Toggle({ on, onChange, disabled, label, sub }) {
   return (
-    <label className={`toggle-row ${disabled ? 'toggle-disabled' : ''}`}>
-      {label && <span className="toggle-label">{label}</span>}
+    <div className={`toggle-row ${disabled ? 'toggle-disabled' : ''}`}>
+      {(label || sub) && (
+        <span className="toggle-text">
+          {label && <span className="toggle-label">{label}</span>}
+          {sub && <span className="toggle-sub">{sub}</span>}
+        </span>
+      )}
       <button
         type="button"
         role="switch"
@@ -17,6 +22,6 @@ export default function Toggle({ on, onChange, disabled, label }) {
         </span>
         <span className="toggle-state">{on ? 'ON' : 'OFF'}</span>
       </button>
-    </label>
+    </div>
   )
 }
