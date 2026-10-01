@@ -1,11 +1,12 @@
 const TOKEN_KEY = 'anvex.apiToken'
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY) || ''
+  return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem('anvex.sessionToken') || ''
 }
 
 export function setToken(token) {
   localStorage.setItem(TOKEN_KEY, token)
+  sessionStorage.removeItem('anvex.sessionToken')
 }
 
 export function clearToken() {
