@@ -60,17 +60,29 @@ export default function ScenarioTemplates({ onNavigate }) {
         {filtered.length === 0 && (
           <p className="templates-empty">No templates match the current filters.</p>
         )}
-        {filtered.map((tpl) => (
-          <div key={tpl.id} className={`template-card ${config.typeId === tpl.id ? 'template-active' : ''}`}>
-            <span className="template-icon">{TEMPLATE_ICONS[tpl.id] || '◇'}</span>
-            <div className="template-info">
-              <span className="template-name">{tpl.name}</span>
-              <span className="template-desc">{tpl.description}</span>
-              <span className="template-meta">{tpl.category} · {tpl.config.attempts} attempts · {tpl.config.interval}s interval</span>
+        {filtered.map((tpl) => {
+          const unimplemented = tpl.implemented === false
+          return (
+            <div key={tpl.id} className={`template-card ${config.typeId === tpl.id ? 'template-active' : ''}`}>
+              <span className="template-icon">{TEMPLATE_ICONS[tpl.id] || '◇'}</span>
+              <div className="template-info">
+                <span className="template-name">
+                  {tpl.name}
+                  {unimplemented && <span className="template-notimpl">NOT IMPLEMENTED YET</span>}
+                </span>
+                <span className="template-desc">{tpl.description}</span>
+                <span className="template-meta">{tpl.category} · {tpl.config.attempts} attempts · {tpl.config.interval}s interval</span>
+              </div>
+              <SecondaryButton
+                className="template-use"
+                onClick={() => useTemplate(tpl.id)}
+                disabled={unimplemented}
+              >
+                Use
+              </SecondaryButton>
             </div>
-            <SecondaryButton className="template-use" onClick={() => useTemplate(tpl.id)}>Use</SecondaryButton>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </PanelShell>
   )

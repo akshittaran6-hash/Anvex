@@ -1,40 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import PanelShell from '../../components/PanelShell.jsx'
 import MetricDisplay from '../../components/MetricDisplay.jsx'
 import DiagnosticRow from '../../components/DiagnosticRow.jsx'
 import { StatusPill, ConnectionBadge } from '../../components/Badges.jsx'
 import { PrimaryButton, SecondaryButton } from '../../components/Buttons.jsx'
-import { api } from '../../api/client.js'
 import { useLab } from '../lab-context.jsx'
 import './lab-home.css'
 
 export default function LabHome({ onNavigate }) {
-  const { templates, sources, simulation } = useLab()
-  const [status, setStatus] = useState(null)
-  const [latency, setLatency] = useState(null)
+  const { templates, sources, simulation, safety, backendStatus, backendLatency } = useLab()
 
-  useEffect(() => {
-    let cancelled = false
-    async function poll() {
-      const started = performance.now()
-      try {
-        const result = await api.get('/api/status')
-        if (cancelled) return
-        setStatus(result)
-        setLatency(Math.round(performance.now() - started))
-      } catch {
-        if (!cancelled) setStatus(null)
-      }
-    }
-    poll()
-    const timer = setInterval(poll, 5000)
-    return () => {
-      cancelled = true
-      clearInterval(timer)
-    }
-  }, [])
-
-  const connected = status !== null
+  const connected = backendStatus !== null
+  const latency = backendLatency
   const running = simulation && simulation.status === 'running'
 
   return (
@@ -59,7 +36,7 @@ export default function LabHome({ onNavigate }) {
                 <DiagnosticRow label="Latency" value={latency !== null ? `~${latency} ms` : '—'} accent="cyan" />
               </div>
               <div className="home-safe">
-                <StatusPill on label="SAFE MODE ON" />
+                <StatusPill on={safety.safeMode} label={safety.safeMode ? 'LAB SAFETY ON' : 'LAB SAFETY OFF'} />
               </div>
             </div>
           </div>
@@ -68,8 +45,8 @@ export default function LabHome({ onNavigate }) {
             <MetricDisplay value={templates.length} label="Scenario Templates" size="lg" />
             <MetricDisplay value={running ? 1 : 0} label="Simulations Running" size="lg" accent={running ? 'green' : 'default'} />
             <MetricDisplay
-              value={status && status.eventCount >= 0 ? status.eventCount : '—'}
-              label="Total Events (Today)"
+              value={backendStatus && backendStatus.eventCount >= 0 ? backendStatus.eventCount : '—'}
+              label="Stored Events (History)"
               size="lg"
             />
           </div>

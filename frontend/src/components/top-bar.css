@@ -39,10 +39,27 @@
   white-space: nowrap;
 }
 
+.top-nav-phase {
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--text-dim);
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.top-nav-phase + .top-nav-phase::before {
+  content: '→ ';
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
 .top-bar-nav {
   display: flex;
   gap: 2px;
   margin-left: auto;
+  align-items: center;
 }
 
 .top-nav-item {

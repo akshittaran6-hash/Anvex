@@ -28,9 +28,59 @@
   color: var(--red);
 }
 
+.create-note {
+  font-size: 10px;
+  color: var(--text-dim);
+  border-left: 2px solid var(--border-strong);
+  padding-left: 10px;
+}
+
+.target-info {
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.target-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+}
+
+.target-row + .target-row {
+  border-top: 1px solid rgba(22, 35, 63, 0.5);
+}
+
+.target-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.target-value {
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  word-break: break-word;
+}
+
+.create-launch {
+  padding: 11px 26px;
+}
+
 .create-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
   padding-top: 6px;
   border-top: 1px solid var(--border);
 }

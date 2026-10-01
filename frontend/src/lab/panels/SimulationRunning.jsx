@@ -25,7 +25,7 @@ const OUTCOME_LABELS = {
 }
 
 export default function SimulationRunning({ onNewSimulation, onInspect }) {
-  const { sources, simulation, stopSimulation } = useLab()
+  const { sources, simulation, stopSimulation, safety } = useLab()
   const [now, setNow] = useState(Date.now())
 
   useEffect(() => {
@@ -56,7 +56,13 @@ export default function SimulationRunning({ onNewSimulation, onInspect }) {
         <div className="sim-title-row">
           <div>
             <h1 className="sim-title">{simulation.name}</h1>
-            <p className="sim-desc">Controlled simulation in progress.</p>
+            <p className="sim-desc">
+              {simulation.status === 'running'
+                ? 'Controlled simulation in progress.'
+                : simulation.status === 'stopped'
+                  ? `Simulation stopped by operator at ${formatElapsed(simulation.completedAt - simulation.startedAt)} elapsed.`
+                  : 'Simulation completed.'}
+            </p>
           </div>
           <div className="sim-elapsed">
             <span className="sim-elapsed-label">Elapsed Time</span>
@@ -65,7 +71,7 @@ export default function SimulationRunning({ onNewSimulation, onInspect }) {
         </div>
         <div className="sim-progress">
           <div className="sim-sent">
-            <span className="sim-sent-label">Events Sent</span>
+            <span className="sim-sent-label">Responses Received</span>
             <span className="sim-sent-value">
               {simulation.sent} <span className="sim-sent-of">of {simulation.attempts}</span>
             </span>
@@ -73,7 +79,7 @@ export default function SimulationRunning({ onNewSimulation, onInspect }) {
           <ProgressIndicator value={simulation.sent} max={simulation.attempts} />
         </div>
         <div className="sim-metrics">
-          <MetricDisplay value={simulation.sent} label="Events Sent" accent="cyan" size="sm" />
+          <MetricDisplay value={simulation.sent} label="Responses" accent="cyan" size="sm" />
           <MetricDisplay value={simulation.failed} label="Failed" accent="orange" size="sm" />
           <MetricDisplay value={simulation.blocked} label="Blocked" accent="red" size="sm" />
           <MetricDisplay value={Math.max(0, simulation.attempts - simulation.sent)} label="Remaining" size="sm" />
@@ -85,8 +91,8 @@ export default function SimulationRunning({ onNewSimulation, onInspect }) {
             <span className="sim-source-ip">{source ? source.ip : '—'}</span>
           </div>
           <div className="sim-source-meta">
-            <DiagnosticRow label="Auth Attempts" value={String(simulation.sent)} accent="cyan" />
-            <DiagnosticRow label="Interval" value={`${simulation.interval} seconds`} />
+            <DiagnosticRow label="Simulated IP" value={source ? source.ip : '—'} />
+            <DiagnosticRow label="Effective Interval" value={`${simulation.interval} seconds`} />
             <DiagnosticRow label="Target User" value={simulation.targetUser} />
           </div>
         </div>
@@ -104,8 +110,11 @@ export default function SimulationRunning({ onNewSimulation, onInspect }) {
           )}
           <div className="sim-mode-note">
             <span>Simulation Mode: {simulation.mode === 'burst' ? 'Burst' : simulation.mode === 'custom' ? 'Custom' : 'Realistic'}</span>
-            <StatusPill on label="SAFE MODE: ON" />
+            <StatusPill on={safety.safeMode} label={safety.safeMode ? 'LAB SAFETY ON' : 'LAB SAFETY OFF'} />
           </div>
+          {simulation.endError && (
+            <p className="sim-end-error">{simulation.endError}</p>
+          )}
         </div>
       </PanelShell>
 

@@ -2,6 +2,14 @@
   max-width: 860px;
 }
 
+.sources-note {
+  font-size: 10px;
+  color: var(--text-dim);
+  border-left: 2px solid var(--border-strong);
+  padding-left: 10px;
+  margin-bottom: 12px;
+}
+
 .sources-placeholder {
   font-family: var(--font-data);
   font-size: 11px;

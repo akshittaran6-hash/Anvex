@@ -1,48 +1,41 @@
 import { useMemo, useState } from 'react'
 import Tabs from '../../components/Tabs.jsx'
-import DiagnosticRow from '../../components/DiagnosticRow.jsx'
 import { useLab } from '../lab-context.jsx'
 import './event-payload-preview.css'
 
-const TABS = ['EVENT PREVIEW', 'JSON', 'RAW']
+const TABS = ['REQUEST', 'JSON', 'RAW']
 
 const VARIABLES = [
-  { key: 'sourceId', label: 'Source identity id' },
-  { key: 'sourceIp', label: 'Source identity IP' },
   { key: 'username', label: 'Target user' },
-  { key: 'targetService', label: 'Target service' },
-  { key: 'attempts', label: 'Attempt count' },
-  { key: 'interval', label: 'Attempt interval (s)' }
+  { key: 'password', label: 'Password pattern' },
+  { key: 'clientType', label: 'Client type' },
+  { key: 'sourceId', label: 'Source identity id' }
 ]
 
 export default function EventPayloadPreview() {
-  const { config, sources } = useLab()
-  const [tab, setTab] = useState('EVENT PREVIEW')
+  const { config, safety, sanitize } = useLab()
+  const [tab, setTab] = useState('REQUEST')
 
-  const source = sources.find((s) => s.id === config.sourceId)
-  const preview = useMemo(() => ({
-    eventType: 'LOGIN_FAILURE (Event 4625)',
-    source: 'ANVEX-LabSimulator',
-    sourceId: config.sourceId,
-    sourceIp: source ? source.ip : 'unknown',
-    target: config.sourceId,
-    service: 'ANVEX-Core Authentication',
-    user: config.targetUser,
+  const attemptNumber = Number(config.attempts) || 1
+  const payload = useMemo(() => ({
+    username: safety.payloadSanitization ? sanitize(config.targetUser) : config.targetUser,
+    'password': `wrong-guess-1 … wrong-guess-${attemptNumber}`,
     clientType: 'ATTACKER',
-    loginType: 'INTERACTIVE',
-    timestamp: '{{timestamp}}',
-    message: 'An account failed to log on.'
-  }), [config, source])
+    sourceId: safety.payloadSanitization ? sanitize(config.sourceId) : config.sourceId
+  }), [config, safety, sanitize, attemptNumber])
 
-  const requestPayload = useMemo(() => ({
-    username: config.targetUser,
-    password: 'wrong-guess-N',
+  const json = JSON.stringify({
+    username: payload.username,
+    password: 'wrong-guess-1',
     clientType: 'ATTACKER',
-    sourceId: config.sourceId
-  }), [config])
-
-  const json = JSON.stringify(requestPayload, null, 2)
-  const raw = JSON.stringify(requestPayload)
+    sourceId: payload.sourceId
+  }, null, 2)
+  const raw = JSON.stringify({
+    username: payload.username,
+    password: 'wrong-guess-1',
+    clientType: 'ATTACKER',
+    sourceId: payload.sourceId
+  })
 
   return (
     <div className="payload-preview">
@@ -50,26 +43,32 @@ export default function EventPayloadPreview() {
         <div className="payload-head">
           <Tabs tabs={TABS} active={tab} onChange={setTab} />
         </div>
-        {tab === 'EVENT PREVIEW' && (
+        {tab === 'REQUEST' && (
           <div className="payload-rows">
-            <DiagnosticRow label="eventType" value={preview.eventType} accent="cyan" />
-            <DiagnosticRow label="source" value={preview.source} />
-            <DiagnosticRow label="sourceId" value={preview.sourceId} />
-            <DiagnosticRow label="sourceIp" value={preview.sourceIp} />
-            <DiagnosticRow label="target" value={preview.target} />
-            <DiagnosticRow label="service" value={preview.service} />
-            <DiagnosticRow label="user" value={preview.user} />
-            <DiagnosticRow label="clientType" value={preview.clientType} accent="orange" />
-            <DiagnosticRow label="loginType" value={preview.loginType} />
-            <DiagnosticRow label="timestamp" value={preview.timestamp} accent="muted" />
-            <DiagnosticRow label="message" value={preview.message} />
+            <div className="payload-request-row">
+              <span className="payload-request-key">username</span>
+              <span className="payload-request-value">{payload.username || '—'}</span>
+            </div>
+            <div className="payload-request-row">
+              <span className="payload-request-key">password</span>
+              <span className="payload-request-value">{payload['password']}</span>
+            </div>
+            <div className="payload-request-row">
+              <span className="payload-request-key">clientType</span>
+              <span className="payload-request-value">{payload.clientType}</span>
+            </div>
+            <div className="payload-request-row">
+              <span className="payload-request-key">sourceId</span>
+              <span className="payload-request-value">{payload.sourceId || '—'}</span>
+            </div>
           </div>
         )}
         {tab === 'JSON' && <pre className="payload-json">{json}</pre>}
         {tab === 'RAW' && <pre className="payload-json payload-raw">{raw}</pre>}
         <p className="payload-note">
-          Preview derived from the current simulation configuration. Actual outcomes are generated by the ANVEX
-          backend and appear in the simulation log.
+          This is exactly what the browser sends per attempt to the ANVEX lab authentication service.
+          Security events, outcomes, threat levels and protection decisions are generated by the ANVEX
+          Java backend — the browser does not send Windows events, OS data or network packets.
         </p>
       </div>
       <aside className="payload-variables">
@@ -77,12 +76,10 @@ export default function EventPayloadPreview() {
         <div className="payload-variable-list">
           {VARIABLES.map((v) => {
             const resolved = {
-              sourceId: config.sourceId,
-              sourceIp: source ? source.ip : 'unknown',
-              username: config.targetUser,
-              targetService: 'ANVEX-Core Authentication',
-              attempts: config.attempts,
-              interval: config.interval
+              username: payload.username,
+              'password': 'wrong-guess-N',
+              clientType: payload.clientType,
+              sourceId: payload.sourceId
             }[v.key]
             return (
               <div key={v.key} className="payload-variable">
@@ -92,6 +89,9 @@ export default function EventPayloadPreview() {
             )
           })}
         </div>
+        {safety.payloadSanitization && (
+          <p className="payload-sanitized-note">Sanitization ON: | , CR and LF stripped from inputs.</p>
+        )}
       </aside>
     </div>
   )

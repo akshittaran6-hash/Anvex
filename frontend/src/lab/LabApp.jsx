@@ -26,7 +26,7 @@ function LabShell() {
     return <AdminLogin />
   }
 
-  const effectiveView = simulation && (simulation.status === 'running' || simulation.status === 'completed') && view === 'CREATE' && runMode
+  const effectiveView = simulation && (simulation.status === 'running' || simulation.status === 'completed' || simulation.status === 'stopped') && view === 'CREATE' && runMode
     ? 'RUNNING'
     : view
 

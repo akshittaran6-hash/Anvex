@@ -136,15 +136,23 @@ export default function RunDetail({ runId, onBack }) {
         </div>
         <div className="detail-summary-block">
           <span className="detail-block-title">Activity</span>
-          <DiagnosticRow label="Total Events" value={String(loginEvents.length)} />
+          <DiagnosticRow label="Login Events" value={String(loginEvents.length)} />
           <DiagnosticRow label="Failures" value={String(loginEvents.filter((e) => e.outcome === 'FAILURE').length)} accent="orange" />
           <DiagnosticRow label="Blocked" value={String(loginEvents.filter((e) => e.outcome === 'BLOCKED').length)} accent="red" />
           <DiagnosticRow label="Protection Actions" value={String(decisionEvents.length)} accent="orange" />
         </div>
         <div className="detail-summary-block">
           <span className="detail-block-title">Threat</span>
-          <DiagnosticRow label="Peak Level" value={peak || 'NORMAL'} accent={peak === 'CRITICAL' ? 'red' : peak === 'HIGH' ? 'orange' : 'cyan'} />
-          <DiagnosticRow label="Final Level" value={finalLevel || '—'} accent={finalLevel === 'CRITICAL' ? 'red' : 'cyan'} />
+          <DiagnosticRow
+            label="Observed Peak Level"
+            value={peak || '—'}
+            accent={peak === 'CRITICAL' ? 'red' : peak === 'HIGH' ? 'orange' : peak ? 'cyan' : 'muted'}
+          />
+          <DiagnosticRow
+            label="Last Recorded Decision Level"
+            value={finalLevel || '—'}
+            accent={finalLevel === 'CRITICAL' ? 'red' : finalLevel ? 'cyan' : 'muted'}
+          />
           <DiagnosticRow label="Source" value={sources.length > 0 ? sources.join(', ') : '—'} />
         </div>
       </div>
@@ -167,7 +175,7 @@ export default function RunDetail({ runId, onBack }) {
       )}
 
       <div className="detail-timeline">
-        <span className="detail-block-title">Event Timeline ({(events || []).length} events)</span>
+        <span className="detail-block-title">Stored Security Events ({(events || []).length})</span>
         <div className="detail-timeline-list">
           {(events || []).length === 0 && (
             <p className="detail-empty">No events recorded for this run.</p>

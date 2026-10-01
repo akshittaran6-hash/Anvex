@@ -92,7 +92,7 @@ export default function RunHistory({ onSelect }) {
           runId: `RUN-${String(run.runId).padStart(3, '0')}`,
           label: run.label || '—',
           type: derived ? derived.type : null,
-          events: derived ? derived.events : null,
+          logins: derived ? derived.events : null,
           failed: derived ? derived.failed : null,
           blocked: derived ? derived.blocked : null,
           peak: derived ? derived.peak : null,
@@ -137,10 +137,10 @@ export default function RunHistory({ onSelect }) {
             <span>RUN ID</span>
             <span>NAME</span>
             <span>TYPE</span>
-            <span>EVENTS</span>
+            <span>LOGINS</span>
             <span>FAILED</span>
             <span>BLOCKED</span>
-            <span>PEAK LEVEL</span>
+            <span>OBSERVED PEAK</span>
             <span>ELAPSED</span>
             <span>STARTED</span>
           </div>
@@ -150,7 +150,9 @@ export default function RunHistory({ onSelect }) {
         </div>
       )}
       <p className="history-note">
-        Counts and peak levels are derived from each run's real persisted events in the ANVEX backend.
+        Login counts are derived from each run's real persisted LOGIN_* events; blocked counts from BLOCKED
+        outcomes; the observed peak from threat levels actually recorded in the run. Runs whose events could
+        not be loaded show —. Currently RUNNING runs are excluded until they finish.
       </p>
     </PanelShell>
   )

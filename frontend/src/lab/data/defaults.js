@@ -1,4 +1,4 @@
-export const SCENARIO_TEMPLATES = [
+﻿export const SCENARIO_TEMPLATES = [
   {
     id: 'failed-login',
     name: 'Failed Login Simulation',
@@ -32,14 +32,16 @@ export const SCENARIO_TEMPLATES = [
     name: 'Service Error Simulation',
     description: 'Generate application/service error events',
     category: 'System',
-    config: { attempts: 5, interval: 6, mode: 'realistic' }
+    config: { attempts: 5, interval: 6, mode: 'realistic' },
+    implemented: false
   },
   {
     id: 'custom-json',
     name: 'Custom JSON Simulation',
     description: 'Use custom event JSON payload',
     category: 'Custom',
-    config: { attempts: 10, interval: 5, mode: 'custom' }
+    config: { attempts: 10, interval: 5, mode: 'custom' },
+    implemented: false
   }
 ]
 

@@ -13,7 +13,7 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
 }
 
-async function request(method, path, body) {
+async function request(method, path, body, signal) {
   const headers = {}
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
@@ -22,7 +22,8 @@ async function request(method, path, body) {
   const response = await fetch(path, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    signal
   })
 
   let data = null
@@ -44,7 +45,7 @@ async function request(method, path, body) {
 }
 
 export const api = {
-  get: (path) => request('GET', path),
+  get: (path, signal) => request('GET', path, undefined, signal),
   put: (path, body) => request('PUT', path, body),
-  post: (path, body) => request('POST', path, body)
+  post: (path, body, signal) => request('POST', path, body, signal)
 }

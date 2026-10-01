@@ -26,6 +26,11 @@
   letter-spacing: 0.08em;
 }
 
+.cell-peak-unknown {
+  font-weight: 400;
+  color: var(--text-dim);
+}
+
 .cell-metric.accent-cyan { color: var(--cyan); }
 .cell-metric.accent-orange { color: var(--orange); }
 .cell-metric.accent-red { color: var(--red); }

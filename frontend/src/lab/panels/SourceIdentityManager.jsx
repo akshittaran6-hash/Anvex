@@ -56,10 +56,14 @@ export default function SourceIdentityManager() {
     >
       <Tabs tabs={TABS} active={tab} onChange={setTab} />
       {tab !== 'SOURCES' && (
-        <p className="sources-placeholder">{tab.charAt(0) + tab.slice(1).toLowerCase()} view pending.</p>
+        <p className="sources-placeholder">{tab} view is not implemented yet. Source identities are managed in the SOURCES tab.</p>
       )}
       {tab === 'SOURCES' && (
         <>
+          <p className="sources-note">
+            Source identities are simulated lab metadata used to label the browser's attempts. They do not
+            represent real machines or verified network hosts.
+          </p>
           {showAdd && (
             <form className="sources-add" onSubmit={handleAdd}>
               <TextField label="Name" value={newSource.id} onChange={(v) => setNewSource((p) => ({ ...p, id: v }))} />
@@ -75,9 +79,9 @@ export default function SourceIdentityManager() {
           <div className="sources-table">
             <div className="sources-table-head">
               <span />
-              <span>NAME</span>
+              <span>SOURCE ID</span>
               <span>OS</span>
-              <span>IP ADDRESS</span>
+              <span>IP (SIMULATED)</span>
               <span>DESCRIPTION</span>
               <span>STATUS</span>
             </div>
@@ -99,7 +103,7 @@ export default function SourceIdentityManager() {
                   {selected.id}
                 </span>
                 <span className={`sources-detail-status ${isActiveSource ? 'accent-green' : ''}`}>
-                  {isActiveSource ? '● Active Source' : '○ Standby'}
+                  {isActiveSource ? '● Selected for simulation' : '○ Not selected'}
                 </span>
               </div>
               <div className="sources-detail-grid">
@@ -108,7 +112,7 @@ export default function SourceIdentityManager() {
                   <span className="sources-detail-value">{selected.osVersion || selected.os}</span>
                 </div>
                 <div className="sources-detail-field">
-                  <span className="sources-detail-label">IP Address</span>
+                  <span className="sources-detail-label">IP (simulated metadata)</span>
                   <span className="sources-detail-value">{selected.ip}</span>
                 </div>
                 <div className="sources-detail-field">
@@ -129,7 +133,7 @@ export default function SourceIdentityManager() {
               {!isActiveSource && (
                 <div className="sources-detail-actions">
                   <PrimaryButton onClick={() => updateConfig({ sourceId: selected.id })}>
-                    SET AS ACTIVE SOURCE
+                    SET AS SELECTED SOURCE
                   </PrimaryButton>
                 </div>
               )}
